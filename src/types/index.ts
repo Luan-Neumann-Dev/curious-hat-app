@@ -97,6 +97,16 @@ export interface UserProfile {
   bannerImage: string;
   joinedAt: string;
   preferencias: Preferencias;
+  admin: boolean;
+  bloqueado: boolean;
+}
+
+export interface EstatisticasDoAdmin {
+  usuarios: number;
+  bloqueados: number;
+  hats: number;
+  hatsAnonimos: number;
+  respostas: number;
 }
 
 /** Dados que podem aparecer na página pública de um perfil. */
@@ -104,3 +114,8 @@ export type PublicProfile = Pick<
   UserProfile,
   "userId" | "accountName" | "publicHandle" | "bio" | "avatarUrl" | "bannerImage" | "joinedAt"
 >;
+
+export type UsuarioDoAdmin = PublicProfile & {
+  admin: boolean;
+  bloqueado: boolean;
+};

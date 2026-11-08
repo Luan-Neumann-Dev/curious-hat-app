@@ -1,5 +1,6 @@
-import { Routes, Route } from "react-router-dom";
-import { CheckCircle2 } from "lucide-react";
+import { Navigate, Routes, Route } from "react-router-dom";
+import { Ban, CheckCircle2 } from "lucide-react";
+import { Admin } from "../pages/Admin";
 import { Chat } from "../pages/Chat";
 import { Communities } from "../pages/Communities";
 import { Feed } from "../pages/Feed";
@@ -8,6 +9,7 @@ import { Help } from "../pages/Help";
 import { Profile } from "../pages/Profile";
 import { SearchPage } from "../pages/SearchPage";
 import { Settings } from "../pages/Settings";
+import { getCurrentProfile } from "../services/session";
 import type { UserProfile } from "../types";
 import { Navbar } from "./Navbar";
 import { SideRail } from "./SideRail";
@@ -20,6 +22,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ aviso, onFecharAviso, onProfileSaved, onLogout }: AppLayoutProps) {
+  const perfil = getCurrentProfile();
   const paginaDePerfil = <Profile onProfileSaved={onProfileSaved} onLogout={onLogout} />;
 
   return (
@@ -28,6 +31,12 @@ export function AppLayout({ aviso, onFecharAviso, onProfileSaved, onLogout }: Ap
       {/* Abaixo de 1024 px o painel lateral fica depois do conteúdo; acima disso, ao lado. */}
       <div className="flex-1 min-w-0 flex flex-col lg:flex-row">
         <main className="flex-1 min-w-0 min-h-screen bg-app">
+          {perfil?.bloqueado && (
+            <div role="status" className="m-4 p-4 rounded-xl bg-danger-soft/70 border border-danger text-fg flex items-center gap-2.5 text-xs sm:text-sm">
+              <Ban size={20} className="text-danger shrink-0" aria-hidden="true" />
+              <span>Sua conta foi bloqueada por um administrador. Você pode ler, mas não pode publicar, responder ou enviar mensagens.</span>
+            </div>
+          )}
           {aviso && (
             <div
               role="status"
@@ -54,6 +63,8 @@ export function AppLayout({ aviso, onFecharAviso, onProfileSaved, onLogout }: Ap
             <Route path="/chat/:id" element={<Chat />} />
             <Route path="/config" element={<Settings onLogout={onLogout} />} />
             <Route path="/ajuda" element={<Help />} />
+            {/* Só esconde a tela: quem protege os dados são as regras do banco. */}
+            <Route path="/admin" element={perfil?.admin ? <Admin /> : <Navigate to="/" replace />} />
             <Route path="/fofoca/:id" element={<GossipDetail />} />
             <Route path="/perfil" element={paginaDePerfil} />
             <Route path="/perfil/:id" element={paginaDePerfil} />

@@ -8,7 +8,10 @@ export const COLUNAS_PUBLICAS = "id, account_name, handle, bio, avatar_url, bann
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Campos do formulário de perfil. A senha nunca faz parte do perfil. */
-export type DadosDoPerfil = Omit<UserProfile, "userId" | "joinedAt" | "publicHandle" | "preferencias">;
+export type DadosDoPerfil = Omit<
+  UserProfile,
+  "userId" | "joinedAt" | "publicHandle" | "preferencias" | "admin" | "bloqueado"
+>;
 
 export interface LinhaPerfil {
   id: string;
@@ -74,7 +77,11 @@ export function paraPerfilPublico(linha: LinhaPerfil): PublicProfile {
 
 async function carregarPerfil(usuario: User): Promise<UserProfile> {
   const [publico, privado] = await Promise.all([
-    supabase.from("profiles").select(COLUNAS_PUBLICAS).eq("id", usuario.id).single<LinhaPerfil>(),
+    supabase
+      .from("profiles")
+      .select(`${COLUNAS_PUBLICAS}, role, blocked`)
+      .eq("id", usuario.id)
+      .single<LinhaPerfil & { role: string; blocked: boolean }>(),
     supabase
       .from("profile_private")
       .select("full_name, birth_date, codename, anon_by_default, accept_anon_chats, show_counts")
@@ -90,6 +97,8 @@ async function carregarPerfil(usuario: User): Promise<UserProfile> {
     fullName: privado.data.full_name,
     birthDate: privado.data.birth_date ?? "",
     codename: privado.data.codename,
+    admin: publico.data.role === "admin",
+    bloqueado: publico.data.blocked,
     preferencias: {
       anonimoPorPadrao: privado.data.anon_by_default,
       aceitarChatsAnonimos: privado.data.accept_anon_chats,

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { HelpCircle, LogOut, UserCog } from "lucide-react";
+import { HelpCircle, LogOut, ShieldCheck, UserCog } from "lucide-react";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { mensagemDeErro } from "../lib/errors";
 import { getCurrentProfile, salvarPreferencias } from "../services/session";
@@ -121,6 +121,12 @@ export function Settings({ onLogout }: SettingsProps) {
             <HelpCircle size={16} aria-hidden="true" />
             <span>Ajuda</span>
           </Link>
+          {getCurrentProfile()?.admin && (
+            <Link to="/admin" className={estiloDoLink}>
+              <ShieldCheck size={16} aria-hidden="true" />
+              <span>Administração</span>
+            </Link>
+          )}
           <button
             type="button"
             onClick={onLogout}

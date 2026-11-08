@@ -123,7 +123,13 @@ export async function enviarMensagem(
     .insert({ conversation_id: conversaId, member_id: membroId, content: texto })
     .select("id, conversation_id, member_id, content, created_at")
     .single<LinhaMensagem>();
-  if (error) throw new Error("Não foi possível enviar a mensagem.");
+  if (error) {
+    throw new Error(
+      error.code === "42501"
+        ? "Sua conta não pode enviar mensagens aqui. Ela pode estar bloqueada."
+        : "Não foi possível enviar a mensagem."
+    );
+  }
   return paraMensagem(data);
 }
 

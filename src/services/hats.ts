@@ -165,7 +165,13 @@ export async function criarHat(
     .insert({ content: conteudo, is_anonymous: anonimo, community_id: comunidadeId })
     .select("id")
     .single();
-  if (error) throw new Error("Não foi possível publicar seu hat.");
+  if (error) {
+    throw new Error(
+      error.code === "42501"
+        ? "Sua conta não pode publicar aqui. Ela pode estar bloqueada."
+        : "Não foi possível publicar seu hat."
+    );
+  }
 
   return buscarHat(data.id as string);
 }
@@ -211,7 +217,30 @@ export async function responderHat(hatId: string, conteudo: string, anonimo: boo
   const { error } = await supabase
     .from("replies")
     .insert({ hat_id: hatId, content: conteudo, is_anonymous: anonimo });
-  if (error) throw new Error("Não foi possível publicar sua resposta.");
+  if (error) {
+    throw new Error(
+      error.code === "42501"
+        ? "Sua conta não pode responder aqui. Ela pode estar bloqueada."
+        : "Não foi possível publicar sua resposta."
+    );
+  }
+}
+
+/** Respostas de hats ativos, das mais recentes para as mais antigas. A view oculta autores anônimos. */
+export async function buscarRespostas(termo: string): Promise<Reply[]> {
+  let consulta = supabase.from("replies_public").select("*");
+
+  if (termo) {
+    const contem = filtroContem(termo);
+    consulta = consulta.or(`content.ilike.${contem},display_name.ilike.${contem}`);
+  }
+
+  const { data, error } = await consulta
+    .order("created_at", { ascending: false })
+    .limit(LIMITE_DO_FEED)
+    .returns<LinhaResposta[]>();
+  if (error) throw new Error("Não foi possível carregar as respostas.");
+  return data.map(paraResposta);
 }
 
 export async function excluirResposta(id: string): Promise<void> {

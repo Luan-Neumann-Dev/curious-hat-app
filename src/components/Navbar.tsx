@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { HelpCircle, Home, MessageCircle, Search, Settings, User, Users } from "lucide-react";
+import { HelpCircle, Home, MessageCircle, Search, Settings, ShieldCheck, User, Users } from "lucide-react";
+import { getCurrentProfile } from "../services/session";
 import { ThemeToggle } from "./ThemeToggle";
 
 const linkBase =
@@ -66,6 +67,12 @@ export function Navbar() {
           <HelpCircle size={20} aria-hidden="true" />
           <span>Ajuda</span>
         </NavLink>
+        {getCurrentProfile()?.admin && (
+          <NavLink to="/admin" className={linkSoDesktop}>
+            <ShieldCheck size={20} aria-hidden="true" />
+            <span>Administração</span>
+          </NavLink>
+        )}
       </nav>
 
       <div className="flex items-center gap-2">
