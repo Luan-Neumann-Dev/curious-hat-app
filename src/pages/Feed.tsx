@@ -5,6 +5,7 @@ import { ConfirmModal } from "../components/ConfirmModal";
 import { GossipCard } from "../components/GossipCard";
 import { HatButton } from "../components/HatButton";
 import { IdentityToggle } from "../components/IdentityToggle";
+import { useCommunities } from "../hooks/useCommunities";
 import { mensagemDeErro } from "../lib/errors";
 import { alternarFogo, criarHat, excluirHat, listarHats } from "../services/hats";
 import { getCurrentProfile } from "../services/session";
@@ -29,6 +30,8 @@ export function Feed() {
   const [perfil] = useState(getCurrentProfile);
   const [textoNovidade, setTextoNovidade] = useState("");
   const [modoAnonimo, setModoAnonimo] = useState(false);
+  const { comunidades, minhasIds } = useCommunities();
+  const [comunidadeEscolhida, setComunidadeEscolhida] = useState("");
   const [erroPostRapido, setErroPostRapido] = useState("");
   const [publicando, setPublicando] = useState(false);
   const [postParaDeletar, setPostParaDeletar] = useState<Post | null>(null);
@@ -87,7 +90,7 @@ export function Feed() {
     try {
       setPublicando(true);
       setErroPostRapido("");
-      const novo = await criarHat(textoNovidade.trim(), modoAnonimo);
+      const novo = await criarHat(textoNovidade.trim(), modoAnonimo, comunidadeValida || null);
       const apareceNaAba = aba === "paraVoce" || (aba === "anonimos" && novo.isAnonymous);
       if (apareceNaAba) setPosts((listaAtual) => [novo, ...listaAtual]);
       setTextoNovidade("");
@@ -131,6 +134,9 @@ export function Feed() {
   }
 
   const abaAtual = ABAS.find((item) => item.id === aba);
+  const minhasComunidades = comunidades.filter((item) => minhasIds.includes(item.id));
+  // Se a pessoa saiu da comunidade escolhida, volta para "sem comunidade"
+  const comunidadeValida = minhasIds.includes(comunidadeEscolhida) ? comunidadeEscolhida : "";
 
   return (
     <div>
@@ -187,10 +193,30 @@ export function Feed() {
               titulo="Clique para alternar entre seu Perfil e seu Vulgo Anônimo (24h)"
             />
 
-            <HatButton type="submit" variant="purple" disabled={publicando}>
+            <div className="flex flex-wrap items-center gap-3 ml-auto min-w-0">
+              {minhasComunidades.length > 0 && (
+                <div className="min-w-0">
+                  <label htmlFor="comunidade-do-hat" className="sr-only">
+                    Publicar em uma comunidade
+                  </label>
+                  <select
+                    id="comunidade-do-hat"
+                    value={comunidadeValida}
+                    onChange={(e) => setComunidadeEscolhida(e.target.value)}
+                    className="max-w-full bg-app border border-fg/40 text-fg px-3 py-2 rounded-full text-sm"
+                  >
+                    <option value="">Sem comunidade</option>
+                    {minhasComunidades.map((item) => (
+                      <option key={item.id} value={item.id}>{item.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <HatButton type="submit" variant="purple" disabled={publicando}>
               <Send size={15} aria-hidden="true" />
               <span>{publicando ? "Postando..." : "Postar"}</span>
-            </HatButton>
+              </HatButton>
+            </div>
           </div>
         </form>
       </div>

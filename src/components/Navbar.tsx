@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, Search, User } from "lucide-react";
+import { Home, Search, User, Users } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 
 const linkBase =
@@ -28,7 +28,7 @@ export function Navbar() {
       {/* No celular o menu vira uma barra fixa na parte de baixo da tela. */}
       <nav
         aria-label="Menu principal"
-        className="fixed md:static bottom-0 inset-x-0 z-40 grid grid-cols-3 gap-1 md:flex md:flex-col md:gap-2.5 md:flex-1 bg-app border-t md:border-t-0 border-fg/30 p-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] md:p-0"
+        className="fixed md:static bottom-0 inset-x-0 z-40 grid grid-cols-4 gap-1 md:flex md:flex-col md:gap-2.5 md:flex-1 bg-app border-t md:border-t-0 border-fg/30 p-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] md:p-0"
       >
         <NavLink to="/" end className={linkClass}>
           <Home size={20} aria-hidden="true" />
@@ -38,6 +38,10 @@ export function Navbar() {
         <NavLink to="/buscar" className={linkClass}>
           <Search size={20} aria-hidden="true" />
           <span>Buscar</span>
+        </NavLink>
+        <NavLink to="/comunidades" className={linkClass}>
+          <Users size={20} aria-hidden="true" />
+          <span>Comunidades</span>
         </NavLink>
         {/* O atributo "end" garante que só fica selecionado no SEU perfil (/perfil) e não no de outros (/perfil/:id) */}
         <NavLink to="/perfil" end className={linkClass}>

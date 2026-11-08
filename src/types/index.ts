@@ -12,6 +12,7 @@ export interface Post {
   authorAvatar: string | null;
   title: string;
   content: string;
+  communityName: string | null;
   createdAt: string;
   /** Nulo nos hats com nome, que não expiram. */
   expiresAt: string | null;
@@ -37,6 +38,7 @@ export interface Comunidade {
   id: string;
   name: string;
   description: string;
+  featured: boolean;
   members: number;
 }
 

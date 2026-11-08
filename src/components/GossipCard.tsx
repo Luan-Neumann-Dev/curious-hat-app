@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Flame, Trash2, Clock, MessageSquare } from "lucide-react";
+import { Flame, Trash2, Clock, MessageSquare, Users } from "lucide-react";
 import { avatarPorSemente } from "../lib/avatar";
 import { comPlural } from "../lib/plural";
 import type { Post } from "../types";
@@ -117,6 +117,12 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
               </div>
             )}
           </div>
+          {post.communityName && (
+            <p className="flex items-center gap-1 text-xs font-semibold text-muted mb-1.5">
+              <Users size={12} aria-hidden="true" />
+              <span>{post.communityName}</span>
+            </p>
+          )}
           {post.title && <h2 className="text-base font-bold text-fg mb-1">{post.title}</h2>}
           <p className="text-fg-soft whitespace-pre-wrap [overflow-wrap:anywhere] leading-relaxed mb-3 text-sm sm:text-base">
             {post.content}

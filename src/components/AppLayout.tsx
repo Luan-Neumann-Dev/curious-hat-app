@@ -1,12 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
+import { Communities } from "../pages/Communities";
 import { Feed } from "../pages/Feed";
 import { GossipDetail } from "../pages/GossipDetail";
 import { Profile } from "../pages/Profile";
 import { SearchPage } from "../pages/SearchPage";
 import type { UserProfile } from "../types";
 import { Navbar } from "./Navbar";
-import { SuggestionsSidebar } from "./SuggestionsSidebar";
+import { SideRail } from "./SideRail";
 
 interface AppLayoutProps {
   aviso: string;
@@ -21,7 +22,7 @@ export function AppLayout({ aviso, onFecharAviso, onProfileSaved, onLogout }: Ap
   return (
     <div className="min-h-screen bg-app text-fg flex flex-col md:flex-row max-w-7xl w-full mx-auto md:border-x border-fg/30 pb-20 md:pb-0">
       <Navbar />
-      {/* Abaixo de 1024 px as sugestões ficam depois do conteúdo; acima disso, ao lado. */}
+      {/* Abaixo de 1024 px o painel lateral fica depois do conteúdo; acima disso, ao lado. */}
       <div className="flex-1 min-w-0 flex flex-col lg:flex-row">
         <main className="flex-1 min-w-0 min-h-screen bg-app">
           {aviso && (
@@ -45,12 +46,13 @@ export function AppLayout({ aviso, onFecharAviso, onProfileSaved, onLogout }: Ap
           <Routes>
             <Route path="/" element={<Feed />} />
             <Route path="/buscar" element={<SearchPage />} />
+            <Route path="/comunidades" element={<Communities />} />
             <Route path="/fofoca/:id" element={<GossipDetail />} />
             <Route path="/perfil" element={paginaDePerfil} />
             <Route path="/perfil/:id" element={paginaDePerfil} />
           </Routes>
         </main>
-        <SuggestionsSidebar />
+        <SideRail />
       </div>
     </div>
   );

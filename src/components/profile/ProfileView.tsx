@@ -6,11 +6,8 @@ import { AVATAR_PADRAO } from "../../lib/avatar";
 import { mensagemDeErro } from "../../lib/errors";
 import { comPlural } from "../../lib/plural";
 import { alternarFogo, excluirHat, listarHatsCurtidos } from "../../services/hats";
-import {
-  carregarEstatisticas,
-  EVENTO_SEGUIDORES,
-  listarComunidadesDaPessoa,
-} from "../../services/social";
+import { EVENTO_COMUNIDADES, listarComunidadesDaPessoa } from "../../services/communities";
+import { carregarEstatisticas, EVENTO_SEGUIDORES } from "../../services/social";
 import type { Comunidade, EstatisticasDoPerfil, Post, PublicProfile } from "../../types";
 import { ConfirmModal } from "../ConfirmModal";
 import { FollowButton } from "../FollowButton";
@@ -63,12 +60,16 @@ export function ProfileView({
     }
     carregar();
 
-    // Seguir pelas sugestões também muda os números deste perfil
+    // Seguir ou entrar em comunidades pelo painel lateral também muda os números deste perfil
     function recarregar() {
       setRecargas((total) => total + 1);
     }
     window.addEventListener(EVENTO_SEGUIDORES, recarregar);
-    return () => window.removeEventListener(EVENTO_SEGUIDORES, recarregar);
+    window.addEventListener(EVENTO_COMUNIDADES, recarregar);
+    return () => {
+      window.removeEventListener(EVENTO_SEGUIDORES, recarregar);
+      window.removeEventListener(EVENTO_COMUNIDADES, recarregar);
+    };
   }, [dados.userId, recargas]);
 
   function abrirAba(aba: AbaDoPerfil) {

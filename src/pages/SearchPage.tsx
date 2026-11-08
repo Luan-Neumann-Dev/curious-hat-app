@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Search as SearchIcon, Users } from "lucide-react";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { GossipCard } from "../components/GossipCard";
@@ -6,8 +7,9 @@ import { PersonRow } from "../components/PersonRow";
 import { mensagemDeErro } from "../lib/errors";
 import { comPlural } from "../lib/plural";
 import { alternarFogo, buscarHats, excluirHat, listarTopHats } from "../services/hats";
+import { buscarComunidades } from "../services/communities";
 import { getCurrentProfile } from "../services/session";
-import { buscarComunidades, buscarPessoas, idsQueSigo } from "../services/social";
+import { buscarPessoas, idsQueSigo } from "../services/social";
 import type { Comunidade, Post, PublicProfile } from "../types";
 
 const ATALHOS = ["Família", "Trabalho", "Amigos", "Madrugada"];
@@ -199,7 +201,7 @@ export function SearchPage() {
                 {comunidades.map((comunidade) => (
                   <li key={comunidade.id} className="flex items-center gap-2 text-sm min-w-0">
                     <Users size={16} className="text-accent shrink-0" aria-hidden="true" />
-                    <span className="font-bold text-fg truncate">{comunidade.name}</span>
+                    <Link to="/comunidades" className="font-bold text-fg truncate hover:underline">{comunidade.name}</Link>
                     <span className="text-xs text-muted shrink-0">{comPlural(comunidade.members, "membro", "membros")}</span>
                   </li>
                 ))}

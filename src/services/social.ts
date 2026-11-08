@@ -1,5 +1,5 @@
 import { supabase } from "../lib/supabase";
-import type { Comunidade, EstatisticasDoPerfil, PublicProfile } from "../types";
+import type { EstatisticasDoPerfil, PublicProfile } from "../types";
 import {
   COLUNAS_PUBLICAS,
   getCurrentProfile,
@@ -8,24 +8,6 @@ import {
 import type { LinhaPerfil } from "./session";
 
 export const EVENTO_SEGUIDORES = "curiousHat_followsUpdated";
-
-const COLUNAS_COMUNIDADE = "id, name, description, community_members(count)";
-
-interface LinhaComunidade {
-  id: string;
-  name: string;
-  description: string;
-  community_members: { count: number }[];
-}
-
-function paraComunidade(linha: LinhaComunidade): Comunidade {
-  return {
-    id: linha.id,
-    name: linha.name,
-    description: linha.description,
-    members: linha.community_members[0]?.count ?? 0,
-  };
-}
 
 /** Monta um filtro "contém" para o `.or()`, tratando o termo como texto literal. */
 export function filtroContem(termo: string): string {
@@ -120,35 +102,4 @@ export async function buscarPessoas(termo: string): Promise<PublicProfile[]> {
     .returns<LinhaPerfil[]>();
   if (error) throw new Error("Não foi possível buscar pessoas.");
   return data.map(paraPerfilPublico);
-}
-
-export async function buscarComunidades(termo: string): Promise<Comunidade[]> {
-  const contem = filtroContem(termo);
-  const { data, error } = await supabase
-    .from("communities")
-    .select(COLUNAS_COMUNIDADE)
-    .or(`name.ilike.${contem},description.ilike.${contem}`)
-    .order("name")
-    .limit(10)
-    .returns<LinhaComunidade[]>();
-  if (error) throw new Error("Não foi possível buscar comunidades.");
-  return data.map(paraComunidade);
-}
-
-export async function listarComunidadesDaPessoa(id: string): Promise<Comunidade[]> {
-  const participacoes = await supabase
-    .from("community_members")
-    .select("community_id")
-    .eq("user_id", id);
-  if (participacoes.error) throw new Error("Não foi possível carregar as comunidades.");
-  if (participacoes.data.length === 0) return [];
-
-  const { data, error } = await supabase
-    .from("communities")
-    .select(COLUNAS_COMUNIDADE)
-    .in("id", participacoes.data.map((linha) => linha.community_id as string))
-    .order("name")
-    .returns<LinhaComunidade[]>();
-  if (error) throw new Error("Não foi possível carregar as comunidades.");
-  return data.map(paraComunidade);
 }

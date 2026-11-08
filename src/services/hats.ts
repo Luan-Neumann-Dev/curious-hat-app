@@ -15,6 +15,7 @@ interface LinhaHat {
   author_avatar: string | null;
   title: string;
   content: string;
+  community_name: string | null;
   created_at: string;
   expires_at: string | null;
   likes_count: number;
@@ -46,6 +47,7 @@ function paraPost(linha: LinhaHat): Post {
     authorAvatar: linha.author_avatar,
     title: linha.title,
     content: linha.content,
+    communityName: linha.community_name ?? null,
     createdAt: linha.created_at,
     expiresAt: linha.expires_at,
     likes: linha.likes_count,
@@ -138,7 +140,7 @@ export async function listarHatsCurtidos(pessoaId: string): Promise<Post[]> {
 export async function buscarHats(termo: string): Promise<Post[]> {
   const contem = filtroContem(termo);
   const { data, error } = await consultaDeHats()
-    .or(`content.ilike.${contem},display_name.ilike.${contem}`)
+    .or(`content.ilike.${contem},display_name.ilike.${contem},community_name.ilike.${contem}`)
     .order("created_at", { ascending: false })
     .limit(30)
     .returns<LinhaHat[]>();
@@ -153,10 +155,14 @@ export async function buscarHat(id: string): Promise<Post> {
   return paraPost(data);
 }
 
-export async function criarHat(conteudo: string, anonimo: boolean): Promise<Post> {
+export async function criarHat(
+  conteudo: string,
+  anonimo: boolean,
+  comunidadeId: string | null = null
+): Promise<Post> {
   const { data, error } = await supabase
     .from("hats")
-    .insert({ content: conteudo, is_anonymous: anonimo })
+    .insert({ content: conteudo, is_anonymous: anonimo, community_id: comunidadeId })
     .select("id")
     .single();
   if (error) throw new Error("Não foi possível publicar seu hat.");
