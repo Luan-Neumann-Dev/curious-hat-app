@@ -11,7 +11,12 @@ Rede social de perguntas e segredos, com posts públicos e anônimos que expiram
 
 ## Como rodar
 
-Requer Node.js.
+Requer Node.js e um projeto no [Supabase](https://supabase.com).
+
+1. No SQL Editor do Supabase, rode os arquivos de `supabase/migrations`, em ordem.
+2. Em Authentication, desative a confirmação de e-mail (**Confirm email**).
+3. Copie `.env.example` para `.env.local` e preencha a URL e a chave pública do projeto.
+4. Instale e inicie o app:
 
 ```bash
 npm install

@@ -1,4 +1,4 @@
-/** Lê um arquivo de imagem e devolve um JPEG em base64 com a largura indicada. */
+/** Lê um arquivo de imagem e devolve um JPEG em base64, reduzido até a largura indicada. */
 export function comprimirImagem(arquivo: File, larguraMax: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const leitor = new FileReader();
@@ -7,10 +7,10 @@ export function comprimirImagem(arquivo: File, larguraMax: number): Promise<stri
       const img = new Image();
       img.onerror = () => reject(new Error("Arquivo de imagem inválido."));
       img.onload = () => {
+        const escala = Math.min(1, larguraMax / img.width);
         const canvas = document.createElement("canvas");
-        const proporcao = larguraMax / img.width;
-        canvas.width = larguraMax;
-        canvas.height = img.height * (proporcao < 1 ? proporcao : 1);
+        canvas.width = Math.round(img.width * escala);
+        canvas.height = Math.round(img.height * escala);
 
         const ctx = canvas.getContext("2d");
         if (!ctx) {

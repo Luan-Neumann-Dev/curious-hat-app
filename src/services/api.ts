@@ -1,5 +1,5 @@
 import type { NewPost, Post } from "../types";
-import { getStoredProfile } from "./session";
+import { getCurrentProfile } from "./session";
 
 const API_URL = "https://6ad69d0bf71f154ac486e9a6.mockapi.io/posts";
 
@@ -64,7 +64,7 @@ export async function deletePost(id: string): Promise<Post> {
 }
 
 export function getCurrentUserKey(): string {
-  const perfil = getStoredProfile();
+  const perfil = getCurrentProfile();
   if (!perfil) return "visitante";
   return String(perfil.userId || perfil.email || perfil.accountName || "visitante");
 }

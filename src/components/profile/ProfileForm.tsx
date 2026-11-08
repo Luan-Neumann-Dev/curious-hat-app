@@ -2,13 +2,14 @@ import { useRef, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { Plus, UserCheck } from "lucide-react";
 import { AVATAR_PADRAO } from "../../lib/avatar";
+import { mensagemDeErro } from "../../lib/errors";
 import { comprimirImagem } from "../../lib/image";
-import { enviarEmailConfirmacao } from "../../services/email";
-import { saveAccount } from "../../services/session";
+import { cadastrar, salvarPerfil } from "../../services/session";
+import type { DadosDoPerfil } from "../../services/session";
 import type { UserProfile } from "../../types";
 import { HatButton } from "../HatButton";
 
-type FormData = Omit<UserProfile, "publicHandle">;
+type FormData = DadosDoPerfil & { password: string };
 type CampoDoForm = keyof FormData;
 type ErrosDoForm = Partial<Record<CampoDoForm, string>>;
 
@@ -25,18 +26,17 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
 
   const [enviando, setEnviando] = useState(false);
   const [erros, setErros] = useState<ErrosDoForm>({});
+  const [erroGeral, setErroGeral] = useState("");
   const [form, setForm] = useState<FormData>({
-    userId: perfilAtual?.userId || "",
     fullName: perfilAtual?.fullName || "",
     email: perfilAtual?.email || "",
     birthDate: perfilAtual?.birthDate || "",
     accountName: perfilAtual?.accountName || "",
     codename: perfilAtual?.codename || "",
-    password: perfilAtual?.password || "",
+    password: "",
     bio: perfilAtual?.bio || "Observando tudo no Curious Hat.",
     avatarUrl: perfilAtual?.avatarUrl || AVATAR_PADRAO,
     bannerImage: perfilAtual?.bannerImage || "",
-    joinedAt: perfilAtual?.joinedAt || "Outubro de 2026",
   });
 
   async function handleImageUpload(
@@ -66,13 +66,16 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
     if (!form.birthDate) {
       novosErros.birthDate = "Informe sua data de nascimento.";
     }
-    if (!form.accountName.trim() || form.accountName.trim().length < 3) {
-      novosErros.accountName = "Escolha seu Nome no Site (mínimo 3 letras).";
+    if (form.accountName.trim().length < 3 || form.accountName.trim().length > 60) {
+      novosErros.accountName = "Escolha seu Nome no Site (de 3 a 60 caracteres).";
     }
-    if (!form.codename.trim() || form.codename.trim().length < 3) {
-      novosErros.codename = "Escolha seu Vulgo secreto (mínimo 3 letras).";
+    const vulgo = form.codename.trim().replace(/^@/, "").replace(/\s+/g, "");
+    if (vulgo.length < 3 || vulgo.length > 40) {
+      novosErros.codename = "Escolha seu Vulgo secreto (de 3 a 40 caracteres).";
     }
-    if (!form.password || form.password.length < 6) {
+    // Ao editar, a senha em branco mantém a atual
+    const senhaObrigatoria = !perfilAtual || form.password.length > 0;
+    if (senhaObrigatoria && form.password.length < 6) {
       novosErros.password = "A senha deve ter pelo menos 6 caracteres.";
     }
     if (!form.bio.trim() || form.bio.trim().length < 5) {
@@ -94,37 +97,35 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
     if (!validarFormulario()) return;
 
     setEnviando(true);
-    const eraContaNova = !perfilAtual;
+    setErroGeral("");
 
-    const handlePublico = form.accountName
-      .trim()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .replace(/[^a-z0-9_]/g, "");
-
-    const dadosFinais: UserProfile = {
-      ...form,
-      userId:
-        perfilAtual?.userId || `user_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    const { password: senha, ...resto } = form;
+    const dadosFinais: DadosDoPerfil = {
+      ...resto,
       fullName: form.fullName.trim(),
       email: form.email.trim(),
       accountName: form.accountName.trim(),
-      publicHandle: handlePublico || "usuario",
       codename: form.codename.trim().replace(/^@/, "").replace(/\s+/g, ""),
       bio: form.bio.trim(),
     };
 
-    saveAccount(dadosFinais);
+    try {
+      if (perfilAtual) {
+        onSalvo(await salvarPerfil(perfilAtual.userId, dadosFinais, senha), "");
+        return;
+      }
 
-    let mensagem = "";
-    if (eraContaNova) {
-      await enviarEmailConfirmacao(dadosFinais.email, dadosFinais.accountName);
-      mensagem = `Conta criada! Enviamos um e-mail de confirmação para ${dadosFinais.email}.`;
+      const handlePublico = dadosFinais.accountName
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9_]/g, "");
+      const { perfil, aviso } = await cadastrar(dadosFinais, handlePublico || "usuario", senha);
+      onSalvo(perfil, aviso);
+    } catch (falha) {
+      setErroGeral(mensagemDeErro(falha));
+      setEnviando(false);
     }
-
-    setEnviando(false);
-    onSalvo(dadosFinais, mensagem);
   }
 
   return (
@@ -279,15 +280,17 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="email" className="block font-bold text-fg text-sm mb-1">
-                  E-mail (Para Login e Confirmação) *
+                  E-mail (Para Login) *
                 </label>
                 <input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="seuemail@exemplo.com"
                   value={form.email}
+                  disabled={Boolean(perfilAtual)}
                   onChange={(e) => handleChange("email", e.target.value)}
-                  className="w-full bg-app border border-fg/60 p-3 rounded-xl text-fg text-sm"
+                  className="w-full bg-app border border-fg/60 p-3 rounded-xl text-fg text-sm disabled:opacity-60"
                 />
                 {erros.email && (
                   <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.email}</p>
@@ -313,12 +316,13 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
 
             <div>
               <label htmlFor="password" className="block font-bold text-fg text-sm mb-1">
-                Senha de Acesso *
+                {perfilAtual ? "Nova Senha" : "Senha de Acesso *"}
               </label>
               <input
                 id="password"
                 type="password"
-                placeholder="Mínimo de 6 caracteres"
+                autoComplete="new-password"
+                placeholder={perfilAtual ? "Deixe em branco para manter a atual" : "Mínimo de 6 caracteres"}
                 value={form.password}
                 onChange={(e) => handleChange("password", e.target.value)}
                 className="w-full bg-app border border-fg/60 p-3 rounded-xl text-fg text-sm"
@@ -329,6 +333,12 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
             </div>
           </div>
         </div>
+
+        {erroGeral && (
+          <div role="alert" className="p-3 rounded-xl border border-danger bg-danger-soft/60 text-danger text-xs font-bold">
+            ⚠️ {erroGeral}
+          </div>
+        )}
 
         <div className="flex justify-end gap-3 pt-4 border-t border-fg/30">
           {perfilAtual && (
@@ -343,7 +353,7 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
                 ? "Salvando..."
                 : perfilAtual
                 ? "Salvar Perfil"
-                : "Criar Conta e Enviar E-mail"}
+                : "Criar Conta"}
             </span>
           </HatButton>
         </div>

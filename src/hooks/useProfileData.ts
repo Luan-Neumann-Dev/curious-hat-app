@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
 import { avatarPorSemente } from "../lib/avatar";
 import { getPosts } from "../services/api";
-import { getStoredUsers } from "../services/session";
+import { buscarPerfilPublico } from "../services/session";
 import type { Post, PublicProfile, UserProfile } from "../types";
 
 function montarPerfilVisitado(idDecodificado: string, postsDaPessoa: Post[]): PublicProfile {
-  const usuarioLocal = getStoredUsers().find(
-    (u) =>
-      u.userId === idDecodificado ||
-      u.accountName?.toLowerCase() === idDecodificado.toLowerCase()
-  );
-  if (usuarioLocal) return usuarioLocal;
-
   const postMaisRecente = postsDaPessoa[0];
   if (postMaisRecente) {
     return {
@@ -64,7 +57,8 @@ export function useProfileData(
                 p.codename?.toLowerCase() === idDecodificado.toLowerCase())
           );
           setPosts(postsDaPessoa);
-          setPerfilVisitado(montarPerfilVisitado(idDecodificado, postsDaPessoa));
+          const perfilReal = await buscarPerfilPublico(idDecodificado);
+          setPerfilVisitado(perfilReal ?? montarPerfilVisitado(idDecodificado, postsDaPessoa));
         } else if (meuPerfil) {
           setPerfilVisitado(null);
           setPosts(

@@ -36,7 +36,6 @@ export interface UserProfile {
   accountName: string;
   publicHandle?: string;
   codename: string;
-  password: string;
   bio: string;
   avatarUrl: string;
   bannerImage: string;

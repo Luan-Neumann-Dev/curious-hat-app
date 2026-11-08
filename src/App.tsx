@@ -1,32 +1,65 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Welcome } from "./pages/Welcome";
-import { clearStoredProfile, getStoredProfile } from "./services/session";
+import { supabase } from "./lib/supabase";
+import { carregarSessao, limparPerfilAtual, sair } from "./services/session";
 import type { UserProfile } from "./types";
 
 type TelaEntrada = "boasVindas" | "login" | "cadastro";
 
 export default function App() {
-  const [perfilAtivo, setPerfilAtivo] = useState<UserProfile | null>(getStoredProfile);
+  const [perfilAtivo, setPerfilAtivo] = useState<UserProfile | null>(null);
+  const [carregandoSessao, setCarregandoSessao] = useState(true);
   const [telaEntrada, setTelaEntrada] = useState<TelaEntrada>("boasVindas");
-  const [avisoEmail, setAvisoEmail] = useState("");
+  const [aviso, setAviso] = useState("");
 
-  function handleLogout() {
-    clearStoredProfile();
+  useEffect(() => {
+    let ativo = true;
+    carregarSessao().then((perfil) => {
+      if (!ativo) return;
+      setPerfilAtivo(perfil);
+      setCarregandoSessao(false);
+    });
+
+    // Fecha a sessão aqui também quando a pessoa sai em outra aba
+    const { data } = supabase.auth.onAuthStateChange((evento) => {
+      if (evento === "SIGNED_OUT") {
+        limparPerfilAtual();
+        setPerfilAtivo(null);
+        setTelaEntrada("boasVindas");
+      }
+    });
+
+    return () => {
+      ativo = false;
+      data.subscription.unsubscribe();
+    };
+  }, []);
+
+  async function handleLogout() {
+    await sair();
     setPerfilAtivo(null);
     setTelaEntrada("boasVindas");
   }
 
   function renderizarTela() {
+    if (carregandoSessao) {
+      return (
+        <div className="min-h-screen bg-app text-muted flex items-center justify-center">
+          <p role="status">Carregando...</p>
+        </div>
+      );
+    }
+
     if (perfilAtivo) {
       return (
         <AppLayout
-          aviso={avisoEmail}
-          onFecharAviso={() => setAvisoEmail("")}
+          aviso={aviso}
+          onFecharAviso={() => setAviso("")}
           onProfileSaved={setPerfilAtivo}
           onLogout={handleLogout}
         />
@@ -43,7 +76,7 @@ export default function App() {
           onVoltar={() => setTelaEntrada("boasVindas")}
           onCadastro={(novoPerfil, mensagem) => {
             setPerfilAtivo(novoPerfil);
-            setAvisoEmail(mensagem);
+            setAviso(mensagem);
           }}
         />
       );

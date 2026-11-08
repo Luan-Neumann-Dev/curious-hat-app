@@ -6,14 +6,14 @@ import { GossipCard } from "../components/GossipCard";
 import { HatButton } from "../components/HatButton";
 import { mensagemDeErro } from "../lib/errors";
 import { getPosts, createPost, togglePostLike, deletePost } from "../services/api";
-import { getStoredProfile } from "../services/session";
+import { getCurrentProfile } from "../services/session";
 import type { Post } from "../types";
 
 export function Feed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [perfil] = useState(getStoredProfile);
+  const [perfil] = useState(getCurrentProfile);
   const [textoNovidade, setTextoNovidade] = useState("");
   const [modoAnonimo, setModoAnonimo] = useState(false);
   const [erroPostRapido, setErroPostRapido] = useState("");

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { ArrowLeft, Lock, Mail } from "lucide-react";
-import { login } from "../services/session";
+import { mensagemDeErro } from "../lib/errors";
+import { entrar } from "../services/session";
 import type { UserProfile } from "../types";
 
 interface LoginProps {
@@ -13,17 +14,19 @@ export function Login({ onVoltar, onLogin }: LoginProps) {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErro("");
+    setEnviando(true);
 
-    const usuario = login(email, senha);
-    if (!usuario) {
-      setErro("E-mail ou senha incorretos. Verifique seus dados ou crie um perfil.");
-      return;
+    try {
+      onLogin(await entrar(email, senha));
+    } catch (falha) {
+      setErro(mensagemDeErro(falha));
+      setEnviando(false);
     }
-    onLogin(usuario);
   }
 
   return (
@@ -93,9 +96,10 @@ export function Login({ onVoltar, onLogin }: LoginProps) {
 
           <button
             type="submit"
-            className="w-full py-3 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-bold border border-accent cursor-pointer transition mt-2"
+            disabled={enviando}
+            className="w-full py-3 rounded-full bg-primary hover:bg-primary-hover text-on-primary font-bold border border-accent cursor-pointer transition mt-2 disabled:opacity-60 disabled:cursor-wait"
           >
-            Entrar
+            {enviando ? "Entrando..." : "Entrar"}
           </button>
         </form>
       </div>

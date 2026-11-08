@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { ProfileForm } from "../components/profile/ProfileForm";
 import { ProfileView } from "../components/profile/ProfileView";
 import { useProfileData } from "../hooks/useProfileData";
-import { getStoredProfile } from "../services/session";
+import { getCurrentProfile } from "../services/session";
 import type { UserProfile } from "../types";
 
 interface ProfileProps {
@@ -13,7 +13,7 @@ interface ProfileProps {
 
 export function Profile({ onProfileSaved, onLogout }: ProfileProps) {
   const { id: idUrl } = useParams(); // ID ou nome do usuário quando clicamos no perfil de alguém
-  const [meuPerfil, setMeuPerfil] = useState(getStoredProfile);
+  const [meuPerfil, setMeuPerfil] = useState(getCurrentProfile);
   const [editando, setEditando] = useState(false);
 
   const visitandoOutroUsuario =
