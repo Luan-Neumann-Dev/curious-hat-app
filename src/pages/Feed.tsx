@@ -114,28 +114,28 @@ export function Feed() {
 
   return (
     <div>
-      <div className="border-b border-white/40 p-4 flex items-center justify-between bg-black sticky top-0 z-10">
-        <h1 className="text-xl font-extrabold text-white">Página Inicial</h1>
+      <div className="border-b border-fg/40 p-4 flex items-center justify-between bg-app sticky top-0 z-10">
+        <h1 className="text-xl font-extrabold text-fg">Página Inicial</h1>
         <HatButton variant="outline" onClick={carregarFofocas} ariaLabel="Atualizar timeline">
           <RefreshCw size={16} aria-hidden="true" />
           <span>Atualizar</span>
         </HatButton>
       </div>
-      <div className="p-4 border-b border-white/40 bg-zinc-950/50">
+      <div className="p-4 border-b border-fg/40 bg-surface/50">
         <form onSubmit={handlePublicarRapido} noValidate>
           <div className="flex gap-3">
             {perfil?.avatarUrl && !modoAnonimo ? (
               <img
                 src={perfil.avatarUrl}
                 alt={perfil.accountName}
-                className="w-11 h-11 rounded-full object-cover border border-white/30 shrink-0"
+                className="w-11 h-11 rounded-full object-cover border border-fg/30 shrink-0"
               />
             ) : (
-              <div className="w-11 h-11 rounded-full bg-purple-950 border border-purple-400 flex items-center justify-center text-lg shrink-0">
+              <div className="w-11 h-11 rounded-full bg-anon-soft border border-anon flex items-center justify-center text-lg shrink-0">
                 🎩
               </div>
             )}
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <label htmlFor="caixa-novidades" className="sr-only">
                 Qual as novidades
               </label>
@@ -149,12 +149,12 @@ export function Feed() {
                   setTextoNovidade(e.target.value);
                   if (erroPostRapido) setErroPostRapido("");
                 }}
-                className="w-full bg-black border border-white/30 focus:border-purple-400 p-3 rounded-xl text-white placeholder-zinc-400 resize-none text-base"
+                className="w-full bg-app border border-fg/30 focus:border-accent p-3 rounded-xl text-fg placeholder-muted resize-none text-base"
               />
             </div>
           </div>
           {erroPostRapido && (
-            <p role="alert" className="text-red-400 text-xs font-bold mt-2">
+            <p role="alert" className="text-danger text-xs font-bold mt-2">
               ⚠️ {erroPostRapido}
             </p>
           )}
@@ -168,8 +168,8 @@ export function Feed() {
               <span
                 className={`relative inline-block text-base font-extrabold tracking-wide transition-colors ${
                   modoAnonimo
-                    ? "text-purple-400"
-                    : "text-white group-hover:text-zinc-300"
+                    ? "text-anon"
+                    : "text-fg group-hover:text-fg-soft"
                 }`}
               >
                 {modoAnonimo && (
@@ -192,14 +192,14 @@ export function Feed() {
         </form>
       </div>
       {error && (
-        <div role="alert" className="m-4 p-4 border border-red-400 bg-red-950/70 text-white rounded-xl">
+        <div role="alert" className="m-4 p-4 border border-danger bg-danger-soft/70 text-fg rounded-xl">
           {error}
         </div>
       )}
       {loading ? (
-        <div className="p-12 text-center text-zinc-400">Carregando novidades...</div>
+        <div className="p-12 text-center text-muted">Carregando novidades...</div>
       ) : posts.length === 0 ? (
-        <div className="p-12 text-center text-zinc-400">
+        <div className="p-12 text-center text-muted">
           Nenhuma publicação ativa no momento.
         </div>
       ) : (

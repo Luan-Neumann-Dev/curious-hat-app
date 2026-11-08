@@ -18,12 +18,12 @@ export function ConfirmModal({ post, onCancel, onConfirm, isDeleting }: ConfirmM
       aria-labelledby="modal-titulo"
       className="fixed inset-0 bg-black/85 flex items-center justify-center p-4 z-50"
     >
-      <div className="bg-black border-2 border-red-500 rounded-2xl max-w-md w-full p-6 shadow-2xl">
-        <h2 id="modal-titulo" className="text-xl font-bold text-white mb-2">
+      <div className="bg-app border-2 border-danger rounded-2xl max-w-md w-full p-6 shadow-2xl">
+        <h2 id="modal-titulo" className="text-xl font-bold text-fg mb-2">
           🔥 Queimar este segredo?
         </h2>
-        <p className="text-zinc-200 text-sm mb-6">
-          Você está prestes a destruir a fofoca <strong className="text-purple-400">"{post.title}"</strong> antes do tempo acabar. Essa ação não pode ser desfeita!
+        <p className="text-fg-soft text-sm mb-6">
+          Você está prestes a destruir a fofoca <strong className="text-accent">"{post.title}"</strong> antes do tempo acabar. Essa ação não pode ser desfeita!
         </p>
 
         <div className="flex justify-end gap-3">

@@ -78,18 +78,18 @@ export function SearchPage() {
 
   return (
     <div>
-      <div className="border-b border-white p-4 bg-black">
-        <h1 className="text-xl font-extrabold text-white">Explorar & Buscar Fofocas 🔍</h1>
+      <div className="border-b border-fg p-4 bg-app">
+        <h1 className="text-xl font-extrabold text-fg">Explorar & Buscar Fofocas 🔍</h1>
       </div>
 
-      <div className="p-4 border-b border-white/60 bg-zinc-950 space-y-3">
+      <div className="p-4 border-b border-fg/60 bg-surface space-y-3">
         <div className="relative">
           <label htmlFor="input-pesquisa" className="sr-only">
             Pesquisar fofocas ou usuários
           </label>
           <SearchIcon
             size={18}
-            className="absolute left-3.5 top-3 text-purple-400"
+            className="absolute left-3.5 top-3 text-accent"
             aria-hidden="true"
           />
           <input
@@ -98,20 +98,20 @@ export function SearchPage() {
             placeholder="Pesquisar por palavra-chave, fofoca ou @autor..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full bg-black border border-white text-white pl-10 pr-4 py-2.5 rounded-full text-sm"
+            className="w-full bg-app border border-fg text-fg pl-10 pr-4 py-2.5 rounded-full text-sm"
           />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="select-tipo" className="block text-xs text-zinc-300 mb-1 font-semibold">
+            <label htmlFor="select-tipo" className="block text-xs text-fg-soft mb-1 font-semibold">
               Filtrar por Duração:
             </label>
             <select
               id="select-tipo"
               value={filtroTipo}
               onChange={(e) => setFiltroTipo(e.target.value)}
-              className="w-full bg-black border border-purple-400 text-white px-3 py-2 rounded-lg text-sm"
+              className="w-full bg-app border border-accent text-fg px-3 py-2 rounded-lg text-sm"
             >
               <option value="Todos">Todas as Publicações</option>
               <option value="Temporarios">⏳ Apenas Fofocas Temporárias</option>
@@ -120,14 +120,14 @@ export function SearchPage() {
           </div>
 
           <div>
-            <label htmlFor="select-ordem" className="block text-xs text-zinc-300 mb-1 font-semibold">
+            <label htmlFor="select-ordem" className="block text-xs text-fg-soft mb-1 font-semibold">
               Ordenar Resultados:
             </label>
             <select
               id="select-ordem"
               value={ordenacao}
               onChange={(e) => setOrdenacao(e.target.value)}
-              className="w-full bg-black border border-white text-white px-3 py-2 rounded-lg text-sm"
+              className="w-full bg-app border border-fg text-fg px-3 py-2 rounded-lg text-sm"
             >
               <option value="recentes">Mais Recentes</option>
               <option value="fogos">🔥 Mais Bombadas (Fogos)</option>
@@ -138,15 +138,15 @@ export function SearchPage() {
       </div>
 
       {error && (
-        <div role="alert" className="m-4 p-4 border border-red-400 bg-red-950 text-white rounded-xl">
+        <div role="alert" className="m-4 p-4 border border-danger bg-danger-soft text-fg rounded-xl">
           {error}
         </div>
       )}
 
       {loading ? (
-        <p className="p-10 text-center text-zinc-300">Buscando publicações...</p>
+        <p className="p-10 text-center text-fg-soft">Buscando publicações...</p>
       ) : postsFiltrados.length === 0 ? (
-        <p className="p-10 text-center text-zinc-300">
+        <p className="p-10 text-center text-fg-soft">
           Nenhum resultado encontrado para sua busca.
         </p>
       ) : (

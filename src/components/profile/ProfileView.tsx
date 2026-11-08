@@ -49,24 +49,24 @@ export function ProfileView({
 
   return (
     <div>
-      <div className="sticky top-0 z-10 bg-black/85 backdrop-blur-md px-4 py-2.5 border-b border-white/25 flex items-center gap-6">
+      <div className="sticky top-0 z-10 bg-app/85 backdrop-blur-md px-4 py-2.5 border-b border-fg/25 flex items-center gap-6">
         <button
           type="button"
           onClick={() => navigate(-1)}
           aria-label="Voltar"
-          className="p-2 rounded-full hover:bg-zinc-900 text-white transition cursor-pointer"
+          className="p-2 rounded-full hover:bg-raised text-fg transition cursor-pointer"
         >
           <ArrowLeft size={20} aria-hidden="true" />
         </button>
         <div>
-          <h1 className="text-lg font-extrabold text-white leading-tight">
+          <h1 className="text-lg font-extrabold text-fg leading-tight">
             {dados.accountName}
           </h1>
-          <p className="text-xs text-zinc-400">{posts.length} posts</p>
+          <p className="text-xs text-muted">{posts.length} posts</p>
         </div>
       </div>
 
-      <div className="h-44 sm:h-52 w-full bg-gradient-to-r from-purple-900 via-zinc-900 to-red-950 overflow-hidden border-b border-white/20">
+      <div className="h-44 sm:h-52 w-full bg-gradient-to-r from-banner-from via-banner-via to-banner-to overflow-hidden border-b border-fg/20">
         {dados.bannerImage && (
           <img
             src={dados.bannerImage}
@@ -81,7 +81,7 @@ export function ProfileView({
           {/* Se for meu perfil, posso clicar na foto para editar. Se for de outro, apenas exibe a foto */}
           <div
             onClick={() => !visitandoOutroUsuario && onEditar()}
-            className={`relative w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-black bg-zinc-900 overflow-hidden shadow-xl ${
+            className={`relative w-28 h-28 sm:w-32 sm:h-32 rounded-full border-4 border-app bg-raised overflow-hidden shadow-xl ${
               !visitandoOutroUsuario ? "cursor-pointer group" : ""
             }`}
           >
@@ -106,8 +106,8 @@ export function ProfileView({
                 onClick={() => setSeguindo(!seguindo)}
                 className={`px-5 py-2 rounded-full font-extrabold text-sm transition cursor-pointer flex items-center gap-1.5 ${
                   seguindo
-                    ? "bg-black text-white border border-white/60 hover:border-red-400 hover:text-red-400"
-                    : "bg-white text-black hover:bg-zinc-200"
+                    ? "bg-app text-fg border border-fg/60 hover:border-danger hover:text-danger"
+                    : "bg-fg text-app hover:opacity-85"
                 }`}
               >
                 {seguindo ? (
@@ -127,7 +127,7 @@ export function ProfileView({
                 <button
                   type="button"
                   onClick={onEditar}
-                  className="px-4 py-1.5 rounded-full border border-white/50 hover:bg-zinc-900 text-white font-bold text-sm transition cursor-pointer"
+                  className="px-4 py-1.5 rounded-full border border-fg/50 hover:bg-raised text-fg font-bold text-sm transition cursor-pointer"
                 >
                   Editar perfil
                 </button>
@@ -135,7 +135,7 @@ export function ProfileView({
                   type="button"
                   onClick={onLogout}
                   title="Sair da conta"
-                  className="p-2 rounded-full border border-red-500/50 hover:bg-red-950/50 text-red-400 transition cursor-pointer"
+                  className="p-2 rounded-full border border-danger/50 hover:bg-danger-soft/50 text-danger transition cursor-pointer"
                 >
                   <LogOut size={18} aria-hidden="true" />
                 </button>
@@ -145,67 +145,67 @@ export function ProfileView({
         </div>
 
         <div className="mb-3">
-          <h2 className="text-xl font-black text-white leading-tight">
+          <h2 className="text-xl font-black text-fg leading-tight">
             {dados.accountName}
           </h2>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-muted">
             @{dados.publicHandle || dados.accountName?.toLowerCase().replace(/\s+/g, "")}
           </p>
         </div>
 
-        <p className="text-white text-sm leading-relaxed mb-3">
+        <p className="text-fg text-sm leading-relaxed mb-3 [overflow-wrap:anywhere]">
           {dados.bio}
         </p>
 
-        <div className="flex items-center gap-2 text-xs text-zinc-400 mb-3">
+        <div className="flex items-center gap-2 text-xs text-muted mb-3">
           <Calendar size={15} aria-hidden="true" />
           <span>Ingressou em {dados.joinedAt || "Outubro de 2026"}</span>
         </div>
 
         <div className="flex items-center gap-5 text-sm">
-          <span className="text-zinc-400">
-            <strong className="text-white">14</strong> Seguindo
+          <span className="text-muted">
+            <strong className="text-fg">14</strong> Seguindo
           </span>
-          <span className="text-zinc-400">
-            <strong className="text-white">{seguindo ? 29 : 28}</strong> Seguidores
+          <span className="text-muted">
+            <strong className="text-fg">{seguindo ? 29 : 28}</strong> Seguidores
           </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 border-b border-white/30 text-sm font-bold text-center">
+      <div className="grid grid-cols-2 border-b border-fg/30 text-sm font-bold text-center">
         <button
           type="button"
           onClick={() => setAbaAtiva("posts")}
-          className={`py-3.5 hover:bg-zinc-900/60 transition cursor-pointer relative ${
-            abaAtiva === "posts" ? "text-white" : "text-zinc-400"
+          className={`py-3.5 hover:bg-raised/60 transition cursor-pointer relative ${
+            abaAtiva === "posts" ? "text-fg" : "text-muted"
           }`}
         >
           <span>Posts</span>
           {abaAtiva === "posts" && (
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-purple-500 rounded-full" />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-accent rounded-full" />
           )}
         </button>
 
         <button
           type="button"
           onClick={() => setAbaAtiva("curtidas")}
-          className={`py-3.5 hover:bg-zinc-900/60 transition cursor-pointer relative ${
-            abaAtiva === "curtidas" ? "text-white" : "text-zinc-400"
+          className={`py-3.5 hover:bg-raised/60 transition cursor-pointer relative ${
+            abaAtiva === "curtidas" ? "text-fg" : "text-muted"
           }`}
         >
           <span>Fogos</span>
           {abaAtiva === "curtidas" && (
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-purple-500 rounded-full" />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-accent rounded-full" />
           )}
         </button>
       </div>
 
       {loading ? (
-        <p className="p-8 text-center text-zinc-400 text-sm">Carregando posts...</p>
+        <p className="p-8 text-center text-muted text-sm">Carregando posts...</p>
       ) : postsExibidos.length === 0 ? (
         <div className="p-10 text-center space-y-2">
-          <p className="text-white font-bold text-base">Nenhum post público encontrado</p>
-          <p className="text-zinc-400 text-xs max-w-sm mx-auto">
+          <p className="text-fg font-bold text-base">Nenhum post público encontrado</p>
+          <p className="text-muted text-xs max-w-sm mx-auto">
             As publicações públicas de {dados.accountName} aparecerão aqui.
           </p>
         </div>

@@ -1,12 +1,95 @@
 @import "tailwindcss";
-body{
-  background-color: #000000;
-  color:#ffffff;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+/* Cores semânticas usadas nas classes do Tailwind. Os valores vêm do tema ativo. */
+@theme inline {
+  --color-app: var(--app);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-fg: var(--fg);
+  --color-fg-soft: var(--fg-soft);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-line: var(--primary-line);
+  --color-on-primary: var(--on-primary);
+  --color-anon: var(--anon);
+  --color-anon-soft: var(--anon-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-solid: var(--danger-solid);
+  --color-danger-hover: var(--danger-hover);
+  --color-banner-from: var(--banner-from);
+  --color-banner-via: var(--banner-via);
+  --color-banner-to: var(--banner-to);
+}
+
+/* Tema escuro: preto e roxo. */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --app: #000000;
+  --surface: #09090b;
+  --raised: #18181b;
+  --fg: #ffffff;
+  --fg-soft: #e4e4e7;
+  --muted: #a1a1aa;
+  --accent: #c084fc;
+  --accent-soft: #3b0764;
+  --primary: #7e22ce;
+  --primary-hover: #9333ea;
+  --primary-line: #c084fc;
+  --on-primary: #ffffff;
+  --anon: #c084fc;
+  --anon-soft: #3b0764;
+  --danger: #f87171;
+  --danger-soft: #450a0a;
+  --danger-solid: #b91c1c;
+  --danger-hover: #dc2626;
+  --banner-from: #581c87;
+  --banner-via: #18181b;
+  --banner-to: #450a0a;
+  --glow: rgba(168, 85, 247, 0.35);
+  --font-body: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Tema claro: cores e fonte do protótipo do wireframe. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --app: #f3f2f2;
+  --surface: #eae9e9;
+  --raised: #dfdddd;
+  --fg: #201e1d;
+  --fg-soft: #444141;
+  --muted: #605d5d;
+  --accent: #006786;
+  --accent-soft: #cbeeff;
+  --primary: #006786;
+  --primary-hover: #004961;
+  --primary-line: #004961;
+  --on-primary: #ffffff;
+  --anon: #aa0b56;
+  --anon-soft: #ffdee6;
+  --danger: #b91c1c;
+  --danger-soft: #fee2e2;
+  --danger-solid: #b91c1c;
+  --danger-hover: #991b1b;
+  --banner-from: #cbeeff;
+  --banner-via: #eae9e9;
+  --banner-to: #ffdee6;
+  --glow: transparent;
+  --font-body: "Source Serif 4", Georgia, serif;
+}
+
+body {
+  background-color: var(--app);
+  color: var(--fg);
+  font-family: var(--font-body);
   margin: 0;
 }
 
-*:focus-visible{
-outline: 2px solid #c084fc;
-outline-offset:2px;
+*:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

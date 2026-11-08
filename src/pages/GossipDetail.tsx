@@ -37,17 +37,17 @@ export function GossipDetail() {
   }, [id]);
 
   if (loading) {
-    return <p className="p-8 text-center text-zinc-300">Abrindo segredo...</p>;
+    return <p className="p-8 text-center text-fg-soft">Abrindo segredo...</p>;
   }
 
   if (error || !post) {
     return (
       <div className="p-8 text-center space-y-4">
-        <h1 className="text-2xl font-bold text-red-400">💨 Fofoca Indisponível</h1>
-        <p role="alert" className="text-zinc-200">{error}</p>
+        <h1 className="text-2xl font-bold text-danger">💨 Fofoca Indisponível</h1>
+        <p role="alert" className="text-fg-soft">{error}</p>
         <Link
           to="/"
-          className="inline-block bg-purple-700 text-white px-5 py-2 rounded-full font-bold border border-purple-400"
+          className="inline-block bg-primary text-on-primary px-5 py-2 rounded-full font-bold border border-accent"
         >
           Voltar para a Timeline
         </Link>
@@ -121,16 +121,16 @@ export function GossipDetail() {
 
   return (
     <div>
-      <div className="border-b border-white p-4 flex items-center justify-between">
+      <div className="border-b border-fg p-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <Link
             to="/"
             aria-label="Voltar para a Timeline"
-            className="p-2 rounded-full border border-white hover:bg-zinc-900"
+            className="p-2 rounded-full border border-fg hover:bg-raised"
           >
             <ArrowLeft size={18} aria-hidden="true" />
           </Link>
-          <h1 className="text-xl font-extrabold text-white">Detalhes do Segredo</h1>
+          <h1 className="text-xl font-extrabold text-fg">Detalhes do Segredo</h1>
         </div>
 
         <HatButton variant="purple" onClick={handleMaisCincoMinutos}>
@@ -147,9 +147,9 @@ export function GossipDetail() {
         showDetailsLink={false}
       />
 
-      <div className="p-4 border-b border-white/40 bg-zinc-950">
+      <div className="p-4 border-b border-fg/40 bg-surface">
         <form onSubmit={handleEnviarResposta} className="space-y-3">
-          <label htmlFor="campo-resposta" className="block font-bold text-sm text-purple-400">
+          <label htmlFor="campo-resposta" className="block font-bold text-sm text-accent">
             Sussurrar uma resposta anônima:
           </label>
           <textarea
@@ -158,10 +158,10 @@ export function GossipDetail() {
             placeholder="Sabe de mais alguma coisa? Comente aqui..."
             value={respostaTexto}
             onChange={(e) => setRespostaTexto(e.target.value)}
-            className="w-full bg-black border border-white p-3 rounded-lg text-white text-sm"
+            className="w-full bg-app border border-fg p-3 rounded-lg text-fg text-sm"
           />
           {erroResposta && (
-            <p role="alert" className="text-red-400 text-xs font-bold">{erroResposta}</p>
+            <p role="alert" className="text-danger text-xs font-bold">{erroResposta}</p>
           )}
           <div className="flex justify-end">
             <HatButton type="submit" variant="purple">
@@ -172,20 +172,20 @@ export function GossipDetail() {
       </div>
 
       <div className="p-4 space-y-3">
-        <h2 className="font-bold text-white text-base">
+        <h2 className="font-bold text-fg text-base">
           Sussurros nos comentários ({Array.isArray(post.replies) ? post.replies.length : 0})
         </h2>
 
         {!Array.isArray(post.replies) || post.replies.length === 0 ? (
-          <p className="text-zinc-400 text-sm">Ninguém comentou ainda. Seja o primeiro!</p>
+          <p className="text-muted text-sm">Ninguém comentou ainda. Seja o primeiro!</p>
         ) : (
           post.replies.map((reply) => (
-            <div key={reply.id} className="border border-white/30 rounded-xl p-3 bg-black">
-              <div className="flex justify-between text-xs text-purple-400 font-bold mb-1">
+            <div key={reply.id} className="border border-fg/30 rounded-xl p-3 bg-app">
+              <div className="flex justify-between text-xs text-accent font-bold mb-1">
                 <span>@AnônimoDoChapéu</span>
-                <span className="text-zinc-400">{reply.createdAt}</span>
+                <span className="text-muted">{reply.createdAt}</span>
               </div>
-              <p className="text-zinc-100 text-sm">{reply.text}</p>
+              <p className="text-fg-soft text-sm [overflow-wrap:anywhere]">{reply.text}</p>
             </div>
           ))
         )}

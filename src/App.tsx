@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
+import { ThemeToggle } from "./components/ThemeToggle";
 import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { Welcome } from "./pages/Welcome";
@@ -56,5 +57,14 @@ export default function App() {
     );
   }
 
-  return <BrowserRouter>{renderizarTela()}</BrowserRouter>;
+  return (
+    <BrowserRouter>
+      {!perfilAtivo && (
+        <div className="fixed top-4 right-4 z-30">
+          <ThemeToggle />
+        </div>
+      )}
+      {renderizarTela()}
+    </BrowserRouter>
+  );
 }

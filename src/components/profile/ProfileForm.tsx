@@ -129,23 +129,23 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
 
   return (
     <div className="p-4 sm:p-6 max-w-2xl mx-auto">
-      <div className="border-b border-white/30 pb-4 mb-6">
-        <h1 className="text-2xl font-extrabold text-white">
+      <div className="border-b border-fg/30 pb-4 mb-6">
+        <h1 className="text-2xl font-extrabold text-fg">
           {perfilAtual ? "Editar Perfil" : "Criar sua conta no Curious Hat 🎩"}
         </h1>
-        <p className="text-zinc-400 text-xs sm:text-sm mt-1">
+        <p className="text-muted text-xs sm:text-sm mt-1">
           Passe o cursor sobre a foto ou capa para clicar no '+' e escolher uma imagem dos seus arquivos.
         </p>
       </div>
 
-      <div className="mb-6 border border-white/30 rounded-2xl overflow-hidden bg-zinc-950">
+      <div className="mb-6 border border-fg/30 rounded-2xl overflow-hidden bg-surface">
         <div
           onClick={() => fileInputBannerRef.current?.click()}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === "Enter" && fileInputBannerRef.current?.click()}
           aria-label="Alterar papel de parede"
-          className="relative h-36 sm:h-44 w-full bg-gradient-to-r from-purple-900 via-zinc-900 to-red-950 cursor-pointer group overflow-hidden"
+          className="relative h-36 sm:h-44 w-full bg-gradient-to-r from-banner-from via-banner-via to-banner-to cursor-pointer group overflow-hidden"
         >
           {form.bannerImage && (
             <img
@@ -174,7 +174,7 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
             tabIndex={0}
             onKeyDown={(e) => e.key === "Enter" && fileInputAvatarRef.current?.click()}
             aria-label="Alterar foto de perfil"
-            className="relative w-28 h-28 rounded-full border-4 border-black bg-zinc-900 overflow-hidden cursor-pointer group shadow-xl"
+            className="relative w-28 h-28 rounded-full border-4 border-app bg-raised overflow-hidden cursor-pointer group shadow-xl"
           >
             <img
               src={form.avatarUrl}
@@ -193,7 +193,7 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
             />
           </div>
 
-          <span className="text-xs text-zinc-400">
+          <span className="text-xs text-muted">
             Clique na foto ou capa para enviar arquivo
           </span>
         </div>
@@ -202,7 +202,7 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
       <form onSubmit={handleSalvar} noValidate className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="accountName" className="block font-bold text-white text-sm mb-1">
+            <label htmlFor="accountName" className="block font-bold text-fg text-sm mb-1">
               Nome no Site (Público no Perfil) *
             </label>
             <input
@@ -211,15 +211,15 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
               placeholder="Ex: Bernardo Bertolo"
               value={form.accountName}
               onChange={(e) => handleChange("accountName", e.target.value)}
-              className="w-full bg-black border border-white p-3 rounded-xl text-white text-sm"
+              className="w-full bg-app border border-fg p-3 rounded-xl text-fg text-sm"
             />
             {erros.accountName && (
-              <p role="alert" className="text-red-400 text-xs font-bold mt-1">⚠️ {erros.accountName}</p>
+              <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.accountName}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="codename" className="block font-bold text-purple-400 text-sm mb-1">
+            <label htmlFor="codename" className="block font-bold text-accent text-sm mb-1">
               Vulgo Anônimo (Oculto do Perfil 🎩) *
             </label>
             <input
@@ -228,16 +228,16 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
               placeholder="Ex: SombraDoBlocoC"
               value={form.codename}
               onChange={(e) => handleChange("codename", e.target.value)}
-              className="w-full bg-black border border-purple-400 p-3 rounded-xl text-white text-sm"
+              className="w-full bg-app border border-accent p-3 rounded-xl text-fg text-sm"
             />
             {erros.codename && (
-              <p role="alert" className="text-red-400 text-xs font-bold mt-1">⚠️ {erros.codename}</p>
+              <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.codename}</p>
             )}
           </div>
         </div>
 
         <div>
-          <label htmlFor="bio" className="block font-bold text-white text-sm mb-1">
+          <label htmlFor="bio" className="block font-bold text-fg text-sm mb-1">
             Bio do Perfil *
           </label>
           <textarea
@@ -246,21 +246,21 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
             maxLength={160}
             value={form.bio}
             onChange={(e) => handleChange("bio", e.target.value)}
-            className="w-full bg-black border border-white p-3 rounded-xl text-white text-sm"
+            className="w-full bg-app border border-fg p-3 rounded-xl text-fg text-sm"
           />
           {erros.bio && (
-            <p role="alert" className="text-red-400 text-xs font-bold mt-1">⚠️ {erros.bio}</p>
+            <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.bio}</p>
           )}
         </div>
 
-        <div className="pt-2 border-t border-white/20">
-          <p className="text-xs text-zinc-400 mb-3 font-semibold">
+        <div className="pt-2 border-t border-fg/20">
+          <p className="text-xs text-muted mb-3 font-semibold">
             🔒 Dados privados de cadastro e login (não aparecem no seu perfil público):
           </p>
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="fullName" className="block font-bold text-white text-sm mb-1">
+              <label htmlFor="fullName" className="block font-bold text-fg text-sm mb-1">
                 Nome Completo *
               </label>
               <input
@@ -269,16 +269,16 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
                 placeholder="Seu nome completo"
                 value={form.fullName}
                 onChange={(e) => handleChange("fullName", e.target.value)}
-                className="w-full bg-black border border-white/60 p-3 rounded-xl text-white text-sm"
+                className="w-full bg-app border border-fg/60 p-3 rounded-xl text-fg text-sm"
               />
               {erros.fullName && (
-                <p role="alert" className="text-red-400 text-xs font-bold mt-1">⚠️ {erros.fullName}</p>
+                <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.fullName}</p>
               )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="email" className="block font-bold text-white text-sm mb-1">
+                <label htmlFor="email" className="block font-bold text-fg text-sm mb-1">
                   E-mail (Para Login e Confirmação) *
                 </label>
                 <input
@@ -287,15 +287,15 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
                   placeholder="seuemail@exemplo.com"
                   value={form.email}
                   onChange={(e) => handleChange("email", e.target.value)}
-                  className="w-full bg-black border border-white/60 p-3 rounded-xl text-white text-sm"
+                  className="w-full bg-app border border-fg/60 p-3 rounded-xl text-fg text-sm"
                 />
                 {erros.email && (
-                  <p role="alert" className="text-red-400 text-xs font-bold mt-1">⚠️ {erros.email}</p>
+                  <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.email}</p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="birthDate" className="block font-bold text-white text-sm mb-1">
+                <label htmlFor="birthDate" className="block font-bold text-fg text-sm mb-1">
                   Data de Nascimento *
                 </label>
                 <input
@@ -303,16 +303,16 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
                   type="date"
                   value={form.birthDate}
                   onChange={(e) => handleChange("birthDate", e.target.value)}
-                  className="w-full bg-black border border-white/60 p-3 rounded-xl text-white text-sm"
+                  className="w-full bg-app border border-fg/60 p-3 rounded-xl text-fg text-sm"
                 />
                 {erros.birthDate && (
-                  <p role="alert" className="text-red-400 text-xs font-bold mt-1">⚠️ {erros.birthDate}</p>
+                  <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.birthDate}</p>
                 )}
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block font-bold text-white text-sm mb-1">
+              <label htmlFor="password" className="block font-bold text-fg text-sm mb-1">
                 Senha de Acesso *
               </label>
               <input
@@ -321,16 +321,16 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
                 placeholder="Mínimo de 6 caracteres"
                 value={form.password}
                 onChange={(e) => handleChange("password", e.target.value)}
-                className="w-full bg-black border border-white/60 p-3 rounded-xl text-white text-sm"
+                className="w-full bg-app border border-fg/60 p-3 rounded-xl text-fg text-sm"
               />
               {erros.password && (
-                <p role="alert" className="text-red-400 text-xs font-bold mt-1">⚠️ {erros.password}</p>
+                <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.password}</p>
               )}
             </div>
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-white/30">
+        <div className="flex justify-end gap-3 pt-4 border-t border-fg/30">
           {perfilAtual && (
             <HatButton variant="outline" onClick={onCancelar}>
               Cancelar

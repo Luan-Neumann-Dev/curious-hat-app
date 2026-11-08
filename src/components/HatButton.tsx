@@ -12,11 +12,11 @@ interface HatButtonProps {
   className?: string;
 }
 
-// Cores pensadas para ter alto contraste no fundo preto (Lighthouse 90+)
+// Cores pensadas para ter alto contraste nos dois temas
 const variants: Record<HatButtonVariant, string> = {
-  purple: "bg-purple-700 hover:bg-purple-600 text-white border border-purple-400",
-  red: "bg-red-700 hover:bg-red-600 text-white border border-red-400",
-  outline: "bg-black hover:bg-zinc-900 text-white border border-white",
+  purple: "bg-primary hover:bg-primary-hover text-on-primary border border-accent",
+  red: "bg-danger-solid hover:bg-danger-hover text-on-primary border border-danger",
+  outline: "bg-app hover:bg-raised text-fg border border-fg",
 };
 
 export function HatButton({
