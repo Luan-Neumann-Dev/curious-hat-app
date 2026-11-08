@@ -1,7 +1,14 @@
-
+import type { Post } from "../types";
 import { HatButton } from "./HatButton";
 
-export function ConfirmModal({ post, onCancel, onConfirm, isDeleting }) {
+interface ConfirmModalProps {
+  post: Post | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+  isDeleting?: boolean;
+}
+
+export function ConfirmModal({ post, onCancel, onConfirm, isDeleting }: ConfirmModalProps) {
   if (!post) return null;
 
   return (

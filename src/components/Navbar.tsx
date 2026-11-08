@@ -1,8 +1,8 @@
-
 import { NavLink } from "react-router-dom";
 import { Home, Search, User } from "lucide-react";
+
 export function Navbar() {
-  const linkClass = ({ isActive }) =>
+  const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 px-4 py-3 rounded-full font-bold transition-colors border ${
       isActive
         ? "bg-purple-700 text-white border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.35)]"

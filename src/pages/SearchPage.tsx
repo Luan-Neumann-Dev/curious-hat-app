@@ -1,21 +1,23 @@
-// src/pages/SearchPage.jsx
 import { useState, useEffect } from "react";
 import { Search as SearchIcon } from "lucide-react";
-import { getPosts, togglePostLike, deletePost } from "../services/api";
-import { GossipCard } from "../components/GossipCard";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { GossipCard } from "../components/GossipCard";
+import { mensagemDeErro } from "../lib/errors";
+import { getPosts, togglePostLike, deletePost } from "../services/api";
+import type { Post } from "../types";
+
+const CINQUENTA_ANOS_MS = 50 * 365 * 24 * 60 * 60 * 1000;
 
 export function SearchPage() {
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Estados da Busca e Filtros
   const [busca, setBusca] = useState("");
   const [filtroTipo, setFiltroTipo] = useState("Todos");
   const [ordenacao, setOrdenacao] = useState("recentes");
 
-  const [postParaDeletar, setPostParaDeletar] = useState(null);
+  const [postParaDeletar, setPostParaDeletar] = useState<Post | null>(null);
 
   useEffect(() => {
     async function carregar() {
@@ -24,7 +26,7 @@ export function SearchPage() {
         const dados = await getPosts();
         setPosts(dados);
       } catch (err) {
-        setError(err.message);
+        setError(mensagemDeErro(err));
       } finally {
         setLoading(false);
       }
@@ -32,14 +34,14 @@ export function SearchPage() {
     carregar();
   }, []);
 
- async function handleDarFogo(post) {
-  try {
-    const atualizado = await togglePostLike(post);
-    setPosts((atuais) => atuais.map((p) => (p.id === post.id ? atualizado : p)));
-  } catch {
-    setError("Erro ao dar fogo.");
+  async function handleDarFogo(post: Post) {
+    try {
+      const atualizado = await togglePostLike(post);
+      setPosts((atuais) => atuais.map((p) => (p.id === post.id ? atualizado : p)));
+    } catch {
+      setError("Erro ao dar fogo.");
+    }
   }
-}
 
   async function confirmarExclusao() {
     if (!postParaDeletar) return;
@@ -52,8 +54,6 @@ export function SearchPage() {
     }
   }
 
-  const cemAnosMs = 50 * 365 * 24 * 60 * 60 * 1000;
-
   const postsFiltrados = posts
     .filter((post) => {
       const termo = busca.toLowerCase();
@@ -62,7 +62,7 @@ export function SearchPage() {
         post.codename?.toLowerCase().includes(termo) ||
         post.title?.toLowerCase().includes(termo);
 
-      const ehFixo = Number(post.expiresAt) - Date.now() > cemAnosMs;
+      const ehFixo = Number(post.expiresAt) - Number(post.createdAt) > CINQUENTA_ANOS_MS;
       const bateTipo =
         filtroTipo === "Todos" ||
         (filtroTipo === "Temporarios" && !ehFixo) ||
@@ -82,7 +82,6 @@ export function SearchPage() {
         <h1 className="text-xl font-extrabold text-white">Explorar & Buscar Fofocas 🔍</h1>
       </div>
 
-      {/* Controles de Busca e Filtros */}
       <div className="p-4 border-b border-white/60 bg-zinc-950 space-y-3">
         <div className="relative">
           <label htmlFor="input-pesquisa" className="sr-only">

@@ -1,16 +1,41 @@
-# React + Vite
+# Curious Hat
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Rede social de perguntas e segredos, com posts públicos e anônimos que expiram em 24h. Projeto acadêmico para a apresentação de uma matéria da faculdade.
 
-Currently, two official plugins are available:
+## Tecnologias
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19 com TypeScript
+- Vite
+- Tailwind CSS
+- React Router
 
-## React Compiler
+## Como rodar
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Requer Node.js.
 
-## Expanding the Oxlint configuration
+```bash
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+## Comandos
+
+| Comando | O que faz |
+| --- | --- |
+| `npm run dev` | Inicia o ambiente de desenvolvimento |
+| `npm run build` | Verifica os tipos e gera a versão de produção |
+| `npm run typecheck` | Só verifica os tipos |
+| `npm run lint` | Roda o linter |
+| `npm run preview` | Serve a versão de produção localmente |
+
+## Estrutura
+
+```text
+src/
+  components/  Componentes reutilizáveis e layout
+  hooks/       Hooks de dados
+  lib/         Utilitários
+  pages/       Telas
+  services/    Acesso à API e à sessão
+  types/       Tipos compartilhados
+```

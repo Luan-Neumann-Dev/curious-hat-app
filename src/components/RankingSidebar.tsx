@@ -1,34 +1,34 @@
-// src/components/RankingSidebar.jsx
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Flame, Trophy } from "lucide-react";
 import { getPosts } from "../services/api";
+import type { Post } from "../types";
 
 export function RankingSidebar() {
-  const [topPosts, setTopPosts] = useState([]);
+  const [topPosts, setTopPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    async function carregarRanking() {
+      try {
+        const todos = await getPosts();
+        const ordenadosPorFogo = [...todos]
+          .sort((a, b) => (Number(b.likes) || 0) - (Number(a.likes) || 0))
+          .slice(0, 5);
+        setTopPosts(ordenadosPorFogo);
+      } catch {
+        // Silencioso caso a API falhe
+      } finally {
+        setLoading(false);
+      }
+    }
+
     carregarRanking();
 
     // Atualiza o ranking automaticamente sempre que alguém der ou tirar Fogo
     window.addEventListener("curiousHat_postsUpdated", carregarRanking);
     return () => window.removeEventListener("curiousHat_postsUpdated", carregarRanking);
   }, []);
-
-  async function carregarRanking() {
-    try {
-      const todos = await getPosts();
-      const ordenadosPorFogo = [...todos]
-        .sort((a, b) => (Number(b.likes) || 0) - (Number(a.likes) || 0))
-        .slice(0, 5);
-      setTopPosts(ordenadosPorFogo);
-    } catch {
-      // Silencioso caso a API falhe
-    } finally {
-      setLoading(false);
-    }
-  }
 
   return (
     <aside

@@ -1,15 +1,25 @@
-
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Flame, Trash2, Clock, MessageSquare } from "lucide-react";
+import { avatarPorSemente } from "../lib/avatar";
 import { hasUserLiked } from "../services/api";
-export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetailsLink = true }) {
+import type { Post } from "../types";
+
+interface GossipCardProps {
+  post: Post;
+  onLike: (post: Post) => void | Promise<void>;
+  onDeleteRequest?: ((post: Post) => void) | null;
+  onExpire?: (id: string) => void;
+  showDetailsLink?: boolean;
+}
+
+export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetailsLink = true }: GossipCardProps) {
   const [tempoRestante, setTempoRestante] = useState("");
-  const [jaCurtiu, setJaCurtiu] = useState(() => hasUserLiked(post));
+  // Enquanto a curtida é salva, mostra o resultado esperado; depois volta a seguir o post.
+  const [curtidaOtimista, setCurtidaOtimista] = useState<boolean | null>(null);
   const [processandoLike, setProcessandoLike] = useState(false);
-  useEffect(() => {
-    setJaCurtiu(hasUserLiked(post));
-  }, [post]);
+  const jaCurtiu = curtidaOtimista ?? hasUserLiked(post);
+
   useEffect(() => {
     function calcularTempo() {
       const diferenca = Number(post.expiresAt) - Date.now();
@@ -37,23 +47,20 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
     const intervalo = setInterval(calcularTempo, 1000);
     return () => clearInterval(intervalo);
   }, [post.expiresAt, post.id, post.isAnonymous, onExpire]);
+
   async function handleCliqueFogo() {
     if (processandoLike) return;
 
-    const estavaCurtido = hasUserLiked(post);
     try {
       setProcessandoLike(true);
-      setJaCurtiu(!estavaCurtido);
-
-      await onLike({
-        ...post,
-        _toggleLikeAction: estavaCurtido ? "unlike" : "like",
-        _originalLikes: Number(post.likes) || 0,
-      });
+      setCurtidaOtimista(!hasUserLiked(post));
+      await onLike(post);
     } finally {
+      setCurtidaOtimista(null);
       setProcessandoLike(false);
     }
   }
+
   const perfilDestino = post.authorId || encodeURIComponent(post.codename);
   return (
     <article className="border-b border-white/30 p-4 sm:p-5 bg-black hover:bg-zinc-950 transition-colors">
@@ -72,10 +79,7 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
             className="shrink-0 group"
           >
             <img
-              src={
-                post.authorAvatar ||
-                `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(post.codename)}&backgroundColor=6b21a8`
-              }
+              src={post.authorAvatar || avatarPorSemente(post.codename)}
               alt={post.codename}
               className="w-10 h-10 rounded-full object-cover border border-white/30 group-hover:border-purple-400 transition"
             />

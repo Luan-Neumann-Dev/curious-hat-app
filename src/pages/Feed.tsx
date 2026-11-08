@@ -1,27 +1,30 @@
-
 import { useState, useEffect } from "react";
+import type { FormEvent } from "react";
 import { RefreshCw, Send } from "lucide-react";
-import { getPosts, createPost, togglePostLike, deletePost } from "../services/api";
-import { GossipCard } from "../components/GossipCard";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { GossipCard } from "../components/GossipCard";
 import { HatButton } from "../components/HatButton";
+import { mensagemDeErro } from "../lib/errors";
+import { getPosts, createPost, togglePostLike, deletePost } from "../services/api";
+import { getStoredProfile } from "../services/session";
+import type { Post } from "../types";
+
 export function Feed() {
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [perfil] = useState(() => {
-    const dados = localStorage.getItem("curiousHat_profile");
-    return dados ? JSON.parse(dados) : null;
-  });
+  const [perfil] = useState(getStoredProfile);
   const [textoNovidade, setTextoNovidade] = useState("");
   const [modoAnonimo, setModoAnonimo] = useState(false);
   const [erroPostRapido, setErroPostRapido] = useState("");
   const [publicando, setPublicando] = useState(false);
-  const [postParaDeletar, setPostParaDeletar] = useState(null);
+  const [postParaDeletar, setPostParaDeletar] = useState<Post | null>(null);
   const [deletando, setDeletando] = useState(false);
+
   useEffect(() => {
     carregarFofocas();
   }, []);
+
   async function carregarFofocas() {
     try {
       setLoading(true);
@@ -29,13 +32,15 @@ export function Feed() {
       const dados = await getPosts();
       setPosts(dados);
     } catch (err) {
-      setError(err.message);
+      setError(mensagemDeErro(err));
     } finally {
       setLoading(false);
     }
   }
-  async function handlePublicarRapido(e) {
+
+  async function handlePublicarRapido(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!perfil) return;
     if (!textoNovidade.trim() || textoNovidade.trim().length < 3) {
       setErroPostRapido("Escreva uma mensagem antes de postar!");
       return;
@@ -48,15 +53,15 @@ export function Feed() {
         ? agora + 24 * 60 * 60 * 1000
         : agora + 100 * 365 * 24 * 60 * 60 * 1000;
       const novo = await createPost({
-        authorId: modoAnonimo ? null : perfil?.userId,
-        authorAvatar: modoAnonimo ? null : perfil?.avatarUrl,
-        authorBanner: modoAnonimo ? null : perfil?.bannerImage,
-        authorBio: modoAnonimo ? null : perfil?.bio,
+        authorId: modoAnonimo ? null : perfil.userId,
+        authorAvatar: modoAnonimo ? null : perfil.avatarUrl,
+        authorBanner: modoAnonimo ? null : perfil.bannerImage,
+        authorBio: modoAnonimo ? null : perfil.bio,
         authorHandle: modoAnonimo
           ? null
-          : perfil?.publicHandle || perfil?.accountName?.toLowerCase().replace(/\s+/g, ""),
-        authorJoinedAt: modoAnonimo ? null : perfil?.joinedAt,
-        codename: modoAnonimo ? perfil?.codename : perfil?.accountName,
+          : perfil.publicHandle || perfil.accountName.toLowerCase().replace(/\s+/g, ""),
+        authorJoinedAt: modoAnonimo ? null : perfil.joinedAt,
+        codename: modoAnonimo ? perfil.codename : perfil.accountName,
         isAnonymous: modoAnonimo,
         title: "",
         category: "Geral",
@@ -70,12 +75,13 @@ export function Feed() {
       setPosts((listaAtual) => [novo, ...listaAtual]);
       setTextoNovidade("");
     } catch (err) {
-      setErroPostRapido(err.message);
+      setErroPostRapido(mensagemDeErro(err));
     } finally {
       setPublicando(false);
     }
   }
-  async function handleDarFogo(post) {
+
+  async function handleDarFogo(post: Post) {
     try {
       const atualizado = await togglePostLike(post);
       setPosts((listaAtual) =>
@@ -85,6 +91,7 @@ export function Feed() {
       setError("Não foi possível curtir agora.");
     }
   }
+
   async function confirmarExclusao() {
     if (!postParaDeletar) return;
     try {
@@ -95,14 +102,16 @@ export function Feed() {
       );
       setPostParaDeletar(null);
     } catch (err) {
-      setError(err.message);
+      setError(mensagemDeErro(err));
     } finally {
       setDeletando(false);
     }
   }
-  function handleExpirar(idExpirado) {
+
+  function handleExpirar(idExpirado: string) {
     setPosts((listaAtual) => listaAtual.filter((item) => item.id !== idExpirado));
   }
+
   return (
     <div>
       <div className="border-b border-white/40 p-4 flex items-center justify-between bg-black sticky top-0 z-10">
@@ -132,7 +141,7 @@ export function Feed() {
               </label>
               <textarea
                 id="caixa-novidades"
-                rows="3"
+                rows={3}
                 maxLength={280}
                 placeholder="Qual as novidades..."
                 value={textoNovidade}

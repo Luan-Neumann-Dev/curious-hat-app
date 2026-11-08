@@ -1,104 +1,40 @@
-// src/pages/GossipDetail.jsx
 import { useState, useEffect } from "react";
+import type { FormEvent } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Clock } from "lucide-react";
-import { getPostById, updatePost, deletePost } from "../services/api";
+import { ConfirmModal } from "../components/ConfirmModal";
 import { GossipCard } from "../components/GossipCard";
 import { HatButton } from "../components/HatButton";
-import { ConfirmModal } from "../components/ConfirmModal";
+import { mensagemDeErro } from "../lib/errors";
+import { getPostById, updatePost, deletePost } from "../services/api";
+import type { Post, Reply } from "../types";
 
 export function GossipDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [post, setPost] = useState(null);
+  const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Estado para responder à fofoca (estilo Curious Cat)
   const [respostaTexto, setRespostaTexto] = useState("");
   const [erroResposta, setErroResposta] = useState("");
   const [modalAberto, setModalAberto] = useState(false);
 
   useEffect(() => {
-    async function carregarDetalhe() {
+    async function carregarDetalhe(idDoPost: string) {
       try {
         setLoading(true);
-        const dados = await getPostById(id);
+        const dados = await getPostById(idDoPost);
         setPost(dados);
       } catch (err) {
-        setError(err.message);
+        setError(mensagemDeErro(err));
       } finally {
         setLoading(false);
       }
     }
-    carregarDetalhe();
+    if (id) carregarDetalhe(id);
   }, [id]);
-
-  // PUT: Dar Fogo
-  async function handleDarFogo() {
-    try {
-      const atualizado = await updatePost(post.id, {
-        ...post,
-        likes: (Number(post.likes) || 0) + 1,
-      });
-      setPost(atualizado);
-    } catch {
-      setError("Erro ao reagir à fofoca.");
-    }
-  }
-
-  // PUT: Adicionar +5 Minutos ao cronômetro da fofoca
-  async function handleMaisCincoMinutos() {
-    try {
-      const atualizado = await updatePost(post.id, {
-        ...post,
-        expiresAt: Number(post.expiresAt) + 5 * 60 * 1000,
-      });
-      setPost(atualizado);
-    } catch {
-      setError("Não foi possível estender o tempo desta fofoca.");
-    }
-  }
-
-  // PUT: Adicionar Resposta Anônima na thread
-  async function handleEnviarResposta(e) {
-    e.preventDefault();
-    if (respostaTexto.trim().length < 3) {
-      setErroResposta("Digite pelo menos 3 caracteres para responder.");
-      return;
-    }
-
-    try {
-      setErroResposta("");
-      const listaRespostas = Array.isArray(post.replies) ? post.replies : [];
-      const novaResposta = {
-        id: Date.now().toString(),
-        text: respostaTexto.trim(),
-        createdAt: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
-      };
-
-      const atualizado = await updatePost(post.id, {
-        ...post,
-        replies: [...listaRespostas, novaResposta],
-      });
-
-      setPost(atualizado);
-      setRespostaTexto("");
-    } catch {
-      setErroResposta("Erro ao publicar sua resposta.");
-    }
-  }
-
-  // DELETE: Excluir post e voltar para a Home
-  async function confirmarExclusao() {
-    try {
-      await deletePost(post.id);
-      navigate("/");
-    } catch {
-      setError("Erro ao queimar fofoca.");
-    }
-  }
 
   if (loading) {
     return <p className="p-8 text-center text-zinc-300">Abrindo segredo...</p>;
@@ -119,9 +55,72 @@ export function GossipDetail() {
     );
   }
 
+  // A partir daqui o post já foi carregado.
+  const postAtual = post;
+
+  async function handleDarFogo() {
+    try {
+      const atualizado = await updatePost(postAtual.id, {
+        ...postAtual,
+        likes: (Number(postAtual.likes) || 0) + 1,
+      });
+      setPost(atualizado);
+    } catch {
+      setError("Erro ao reagir à fofoca.");
+    }
+  }
+
+  async function handleMaisCincoMinutos() {
+    try {
+      const atualizado = await updatePost(postAtual.id, {
+        ...postAtual,
+        expiresAt: Number(postAtual.expiresAt) + 5 * 60 * 1000,
+      });
+      setPost(atualizado);
+    } catch {
+      setError("Não foi possível estender o tempo desta fofoca.");
+    }
+  }
+
+  async function handleEnviarResposta(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (respostaTexto.trim().length < 3) {
+      setErroResposta("Digite pelo menos 3 caracteres para responder.");
+      return;
+    }
+
+    try {
+      setErroResposta("");
+      const listaRespostas = Array.isArray(postAtual.replies) ? postAtual.replies : [];
+      const novaResposta: Reply = {
+        id: Date.now().toString(),
+        text: respostaTexto.trim(),
+        createdAt: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      };
+
+      const atualizado = await updatePost(postAtual.id, {
+        ...postAtual,
+        replies: [...listaRespostas, novaResposta],
+      });
+
+      setPost(atualizado);
+      setRespostaTexto("");
+    } catch {
+      setErroResposta("Erro ao publicar sua resposta.");
+    }
+  }
+
+  async function confirmarExclusao() {
+    try {
+      await deletePost(postAtual.id);
+      navigate("/");
+    } catch {
+      setError("Erro ao queimar fofoca.");
+    }
+  }
+
   return (
     <div>
-      {/* Topo da Tela 3 */}
       <div className="border-b border-white p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
@@ -140,7 +139,6 @@ export function GossipDetail() {
         </HatButton>
       </div>
 
-      {/* Reutilizando o Componente GossipCard aqui na Tela 3! */}
       <GossipCard
         post={post}
         onLike={handleDarFogo}
@@ -149,7 +147,6 @@ export function GossipDetail() {
         showDetailsLink={false}
       />
 
-      {/* Formulário Rápido de Resposta Anônima (Estilo Curious Cat) */}
       <div className="p-4 border-b border-white/40 bg-zinc-950">
         <form onSubmit={handleEnviarResposta} className="space-y-3">
           <label htmlFor="campo-resposta" className="block font-bold text-sm text-purple-400">
@@ -157,7 +154,7 @@ export function GossipDetail() {
           </label>
           <textarea
             id="campo-resposta"
-            rows="2"
+            rows={2}
             placeholder="Sabe de mais alguma coisa? Comente aqui..."
             value={respostaTexto}
             onChange={(e) => setRespostaTexto(e.target.value)}
@@ -174,7 +171,6 @@ export function GossipDetail() {
         </form>
       </div>
 
-      {/* Lista de Respostas Anônimas */}
       <div className="p-4 space-y-3">
         <h2 className="font-bold text-white text-base">
           Sussurros nos comentários ({Array.isArray(post.replies) ? post.replies.length : 0})
