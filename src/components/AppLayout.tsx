@@ -6,7 +6,7 @@ import { Profile } from "../pages/Profile";
 import { SearchPage } from "../pages/SearchPage";
 import type { UserProfile } from "../types";
 import { Navbar } from "./Navbar";
-import { RankingSidebar } from "./RankingSidebar";
+import { SuggestionsSidebar } from "./SuggestionsSidebar";
 
 interface AppLayoutProps {
   aviso: string;
@@ -21,7 +21,7 @@ export function AppLayout({ aviso, onFecharAviso, onProfileSaved, onLogout }: Ap
   return (
     <div className="min-h-screen bg-app text-fg flex flex-col md:flex-row max-w-7xl w-full mx-auto md:border-x border-fg/30 pb-20 md:pb-0">
       <Navbar />
-      {/* Abaixo de 1024 px o ranking fica depois do conteúdo; acima disso, ao lado. */}
+      {/* Abaixo de 1024 px as sugestões ficam depois do conteúdo; acima disso, ao lado. */}
       <div className="flex-1 min-w-0 flex flex-col lg:flex-row">
         <main className="flex-1 min-w-0 min-h-screen bg-app">
           {aviso && (
@@ -50,7 +50,7 @@ export function AppLayout({ aviso, onFecharAviso, onProfileSaved, onLogout }: Ap
             <Route path="/perfil/:id" element={paginaDePerfil} />
           </Routes>
         </main>
-        <RankingSidebar />
+        <SuggestionsSidebar />
       </div>
     </div>
   );

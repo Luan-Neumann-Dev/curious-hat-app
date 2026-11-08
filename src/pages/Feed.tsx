@@ -8,6 +8,7 @@ import { IdentityToggle } from "../components/IdentityToggle";
 import { mensagemDeErro } from "../lib/errors";
 import { alternarFogo, criarHat, excluirHat, listarHats } from "../services/hats";
 import { getCurrentProfile } from "../services/session";
+import { EVENTO_SEGUIDORES } from "../services/social";
 import type { AbaDoFeed, Post } from "../types";
 
 const ABAS: { id: AbaDoFeed; rotulo: string; vazio: string }[] = [
@@ -56,6 +57,15 @@ export function Feed() {
       ativa = false;
     };
   }, [aba, recargas]);
+
+  // Seguir alguém pelas sugestões muda o que a aba Seguindo mostra
+  useEffect(() => {
+    function recarregarSeguindo() {
+      if (aba === "seguindo") setRecargas((total) => total + 1);
+    }
+    window.addEventListener(EVENTO_SEGUIDORES, recarregarSeguindo);
+    return () => window.removeEventListener(EVENTO_SEGUIDORES, recarregarSeguindo);
+  }, [aba]);
 
   function trocarAba(novaAba: AbaDoFeed) {
     setLoading(true);

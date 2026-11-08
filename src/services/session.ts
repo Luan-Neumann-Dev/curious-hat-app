@@ -4,13 +4,13 @@ import { supabase } from "../lib/supabase";
 import type { PublicProfile, UserProfile } from "../types";
 
 const BUCKET_IMAGENS = "profile-images";
-const COLUNAS_PUBLICAS = "id, account_name, handle, bio, avatar_url, banner_url, joined_at";
+export const COLUNAS_PUBLICAS = "id, account_name, handle, bio, avatar_url, banner_url, joined_at";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Campos do formulário de perfil. A senha nunca faz parte do perfil. */
 export type DadosDoPerfil = Omit<UserProfile, "userId" | "joinedAt" | "publicHandle">;
 
-interface LinhaPerfil {
+export interface LinhaPerfil {
   id: string;
   account_name: string;
   handle: string;
@@ -60,7 +60,7 @@ function formatarEntrada(data: string): string {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
-function paraPerfilPublico(linha: LinhaPerfil): PublicProfile {
+export function paraPerfilPublico(linha: LinhaPerfil): PublicProfile {
   return {
     userId: linha.id,
     accountName: linha.account_name,

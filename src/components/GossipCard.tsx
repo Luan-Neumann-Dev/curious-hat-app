@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Flame, Trash2, Clock, MessageSquare } from "lucide-react";
 import { avatarPorSemente } from "../lib/avatar";
+import { comPlural } from "../lib/plural";
 import type { Post } from "../types";
 
 interface GossipCardProps {
@@ -138,7 +139,7 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
                 aria-hidden="true"
                 className={jaCurtiu ? "fill-accent text-accent" : ""}
               />
-              <span>{post.likes} Fogos</span>
+              <span>{comPlural(post.likes, "Fogo", "Fogos")}</span>
             </button>
             {showDetailsLink && (
               <Link

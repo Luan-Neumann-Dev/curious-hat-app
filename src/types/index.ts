@@ -33,6 +33,20 @@ export interface Reply {
   createdAt: string;
 }
 
+export interface Comunidade {
+  id: string;
+  name: string;
+  description: string;
+  members: number;
+}
+
+export interface EstatisticasDoPerfil {
+  seguidores: number;
+  seguindo: number;
+  comunidades: number;
+  euSigo: boolean;
+}
+
 export interface UserProfile {
   userId: string;
   fullName: string;

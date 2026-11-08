@@ -1,12 +1,28 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Check, LogOut, Plus, UserPlus } from "lucide-react";
+import { ArrowLeft, Calendar, LogOut, Plus, Users } from "lucide-react";
 import { AVATAR_PADRAO } from "../../lib/avatar";
-import { alternarFogo, excluirHat } from "../../services/hats";
-import type { Post, PublicProfile } from "../../types";
+import { mensagemDeErro } from "../../lib/errors";
+import { comPlural } from "../../lib/plural";
+import { alternarFogo, excluirHat, listarHatsCurtidos } from "../../services/hats";
+import {
+  carregarEstatisticas,
+  EVENTO_SEGUIDORES,
+  listarComunidadesDaPessoa,
+} from "../../services/social";
+import type { Comunidade, EstatisticasDoPerfil, Post, PublicProfile } from "../../types";
 import { ConfirmModal } from "../ConfirmModal";
+import { FollowButton } from "../FollowButton";
 import { GossipCard } from "../GossipCard";
+
+type AbaDoPerfil = "hats" | "fogos" | "comunidades";
+
+const ABAS: { id: AbaDoPerfil; rotulo: string }[] = [
+  { id: "hats", rotulo: "Hats" },
+  { id: "fogos", rotulo: "Fogos" },
+  { id: "comunidades", rotulo: "Comunidades" },
+];
 
 interface ProfileViewProps {
   dados: PublicProfile;
@@ -28,24 +44,82 @@ export function ProfileView({
   onLogout,
 }: ProfileViewProps) {
   const navigate = useNavigate();
-  const [abaAtiva, setAbaAtiva] = useState<"posts" | "curtidas">("posts");
-  const [seguindo, setSeguindo] = useState(false);
+  const [abaAtiva, setAbaAtiva] = useState<AbaDoPerfil>("hats");
+  const [estatisticas, setEstatisticas] = useState<EstatisticasDoPerfil | null>(null);
+  const [curtidos, setCurtidos] = useState<Post[]>([]);
+  const [comunidades, setComunidades] = useState<Comunidade[]>([]);
+  const [carregandoAba, setCarregandoAba] = useState(false);
+  const [recargas, setRecargas] = useState(0);
+  const [erro, setErro] = useState("");
   const [postParaDeletar, setPostParaDeletar] = useState<Post | null>(null);
 
+  useEffect(() => {
+    async function carregar() {
+      try {
+        setEstatisticas(await carregarEstatisticas(dados.userId));
+      } catch (err) {
+        setErro(mensagemDeErro(err));
+      }
+    }
+    carregar();
+
+    // Seguir pelas sugestões também muda os números deste perfil
+    function recarregar() {
+      setRecargas((total) => total + 1);
+    }
+    window.addEventListener(EVENTO_SEGUIDORES, recarregar);
+    return () => window.removeEventListener(EVENTO_SEGUIDORES, recarregar);
+  }, [dados.userId, recargas]);
+
+  function abrirAba(aba: AbaDoPerfil) {
+    setAbaAtiva(aba);
+    setErro("");
+    if (aba === "hats") return;
+
+    async function carregarAba() {
+      try {
+        setCarregandoAba(true);
+        if (aba === "fogos") {
+          setCurtidos(await listarHatsCurtidos(dados.userId));
+        } else {
+          setComunidades(await listarComunidadesDaPessoa(dados.userId));
+        }
+      } catch (err) {
+        setErro(mensagemDeErro(err));
+      } finally {
+        setCarregandoAba(false);
+      }
+    }
+    carregarAba();
+  }
+
+  function aplicarNasListas(atualizar: (lista: Post[]) => Post[]) {
+    setPosts(atualizar);
+    setCurtidos(atualizar);
+  }
+
   async function handleDarFogo(post: Post) {
-    const atualizado = await alternarFogo(post);
-    setPosts((atuais) => atuais.map((p) => (p.id === post.id ? atualizado : p)));
+    try {
+      const atualizado = await alternarFogo(post);
+      aplicarNasListas((atuais) => atuais.map((p) => (p.id === post.id ? atualizado : p)));
+    } catch (err) {
+      setErro(mensagemDeErro(err));
+    }
   }
 
   async function confirmarExclusao() {
     if (!postParaDeletar) return;
-    await excluirHat(postParaDeletar.id);
-    setPosts((atuais) => atuais.filter((p) => p.id !== postParaDeletar.id));
-    setPostParaDeletar(null);
+    try {
+      await excluirHat(postParaDeletar.id);
+      aplicarNasListas((atuais) => atuais.filter((p) => p.id !== postParaDeletar.id));
+    } catch (err) {
+      setErro(mensagemDeErro(err));
+    } finally {
+      setPostParaDeletar(null);
+    }
   }
 
-  const postsExibidos =
-    abaAtiva === "curtidas" ? posts.filter((p) => p.likes > 0) : posts;
+  const postsExibidos = abaAtiva === "fogos" ? curtidos : posts;
 
   return (
     <div>
@@ -62,7 +136,7 @@ export function ProfileView({
           <h1 className="text-lg font-extrabold text-fg leading-tight">
             {dados.accountName}
           </h1>
-          <p className="text-xs text-muted">{posts.length} posts</p>
+          <p className="text-xs text-muted">{comPlural(posts.length, "hat", "hats")}</p>
         </div>
       </div>
 
@@ -101,27 +175,10 @@ export function ProfileView({
 
           <div className="flex items-center gap-2">
             {visitandoOutroUsuario ? (
-              <button
-                type="button"
-                onClick={() => setSeguindo(!seguindo)}
-                className={`px-5 py-2 rounded-full font-extrabold text-sm transition cursor-pointer flex items-center gap-1.5 ${
-                  seguindo
-                    ? "bg-app text-fg border border-fg/60 hover:border-danger hover:text-danger"
-                    : "bg-fg text-app hover:opacity-85"
-                }`}
-              >
-                {seguindo ? (
-                  <>
-                    <Check size={16} aria-hidden="true" />
-                    <span>Seguindo</span>
-                  </>
-                ) : (
-                  <>
-                    <UserPlus size={16} aria-hidden="true" />
-                    <span>Seguir</span>
-                  </>
-                )}
-              </button>
+              <FollowButton
+                userId={dados.userId}
+                seguindo={estatisticas?.euSigo ?? false}
+              />
             ) : (
               <>
                 <button
@@ -135,6 +192,7 @@ export function ProfileView({
                   type="button"
                   onClick={onLogout}
                   title="Sair da conta"
+                  aria-label="Sair da conta"
                   className="p-2 rounded-full border border-danger/50 hover:bg-danger-soft/50 text-danger transition cursor-pointer"
                 >
                   <LogOut size={18} aria-hidden="true" />
@@ -162,51 +220,76 @@ export function ProfileView({
           <span>Ingressou em {dados.joinedAt || "Outubro de 2026"}</span>
         </div>
 
-        <div className="flex items-center gap-5 text-sm">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
           <span className="text-muted">
-            <strong className="text-fg">14</strong> Seguindo
+            <strong className="text-fg">{estatisticas?.seguidores ?? "–"}</strong>{" "}
+            {estatisticas?.seguidores === 1 ? "Seguidor" : "Seguidores"}
           </span>
           <span className="text-muted">
-            <strong className="text-fg">{seguindo ? 29 : 28}</strong> Seguidores
+            <strong className="text-fg">{estatisticas?.seguindo ?? "–"}</strong> Seguindo
+          </span>
+          <span className="text-muted">
+            <strong className="text-fg">{estatisticas?.comunidades ?? "–"}</strong>{" "}
+            {estatisticas?.comunidades === 1 ? "Comunidade" : "Comunidades"}
           </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 border-b border-fg/30 text-sm font-bold text-center">
-        <button
-          type="button"
-          onClick={() => setAbaAtiva("posts")}
-          className={`py-3.5 hover:bg-raised/60 transition cursor-pointer relative ${
-            abaAtiva === "posts" ? "text-fg" : "text-muted"
-          }`}
-        >
-          <span>Posts</span>
-          {abaAtiva === "posts" && (
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-accent rounded-full" />
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setAbaAtiva("curtidas")}
-          className={`py-3.5 hover:bg-raised/60 transition cursor-pointer relative ${
-            abaAtiva === "curtidas" ? "text-fg" : "text-muted"
-          }`}
-        >
-          <span>Fogos</span>
-          {abaAtiva === "curtidas" && (
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-accent rounded-full" />
-          )}
-        </button>
+      <div role="tablist" aria-label="Conteúdo do perfil" className="grid grid-cols-3 border-b border-fg/30 text-sm font-bold text-center">
+        {ABAS.map((aba) => (
+          <button
+            key={aba.id}
+            type="button"
+            role="tab"
+            aria-selected={abaAtiva === aba.id}
+            onClick={() => abrirAba(aba.id)}
+            className={`py-3.5 px-1 hover:bg-raised/60 transition cursor-pointer relative ${
+              abaAtiva === aba.id ? "text-fg" : "text-muted"
+            }`}
+          >
+            <span>{aba.rotulo}</span>
+            {abaAtiva === aba.id && (
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-accent rounded-full" />
+            )}
+          </button>
+        ))}
       </div>
 
-      {loading ? (
-        <p className="p-8 text-center text-muted text-sm">Carregando posts...</p>
+      {erro && (
+        <div role="alert" className="m-4 p-3 border border-danger bg-danger-soft/70 text-fg text-sm rounded-xl">
+          {erro}
+        </div>
+      )}
+
+      {loading || carregandoAba ? (
+        <p className="p-8 text-center text-muted text-sm">Carregando...</p>
+      ) : abaAtiva === "comunidades" ? (
+        comunidades.length === 0 ? (
+          <p className="p-10 text-center text-muted text-sm">
+            {dados.accountName} ainda não entrou em nenhuma comunidade.
+          </p>
+        ) : (
+          <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4">
+            {comunidades.map((comunidade) => (
+              <li key={comunidade.id} className="border border-fg/30 rounded-xl p-3 bg-surface min-w-0">
+                <p className="font-bold text-fg text-sm truncate">{comunidade.name}</p>
+                <p className="flex items-center gap-1.5 text-xs text-muted mt-1">
+                  <Users size={13} aria-hidden="true" />
+                  <span>{comPlural(comunidade.members, "membro", "membros")}</span>
+                </p>
+              </li>
+            ))}
+          </ul>
+        )
       ) : postsExibidos.length === 0 ? (
         <div className="p-10 text-center space-y-2">
-          <p className="text-fg font-bold text-base">Nenhum post público encontrado</p>
+          <p className="text-fg font-bold text-base">
+            {abaAtiva === "fogos" ? "Nenhum Fogo por aqui" : "Nenhum hat público encontrado"}
+          </p>
           <p className="text-muted text-xs max-w-sm mx-auto">
-            As publicações públicas de {dados.accountName} aparecerão aqui.
+            {abaAtiva === "fogos"
+              ? `Os hats ativos que ${dados.accountName} curtir aparecerão aqui.`
+              : `Os hats com nome de ${dados.accountName} aparecerão aqui.`}
           </p>
         </div>
       ) : (
@@ -215,8 +298,8 @@ export function ProfileView({
             key={post.id}
             post={post}
             onLike={handleDarFogo}
-            onDeleteRequest={!visitandoOutroUsuario ? setPostParaDeletar : null}
-            onExpire={(id) => setPosts((atuais) => atuais.filter((p) => p.id !== id))}
+            onDeleteRequest={setPostParaDeletar}
+            onExpire={(id) => aplicarNasListas((atuais) => atuais.filter((p) => p.id !== id))}
           />
         ))
       )}

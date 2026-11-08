@@ -1,6 +1,7 @@
 import { supabase } from "../lib/supabase";
 import type { AbaDoFeed, Post, Reply } from "../types";
 import { getCurrentProfile } from "./session";
+import { filtroContem, idsQueSigo } from "./social";
 
 const LIMITE_DO_FEED = 100;
 
@@ -68,24 +69,8 @@ function paraResposta(linha: LinhaResposta): Reply {
   };
 }
 
-function avisarPostsAtualizados(): void {
-  window.dispatchEvent(new Event("curiousHat_postsUpdated"));
-}
-
 function consultaDeHats() {
   return supabase.from("hats_public").select("*");
-}
-
-async function idsQueSigo(): Promise<string[]> {
-  const eu = getCurrentProfile();
-  if (!eu) return [];
-
-  const { data, error } = await supabase
-    .from("follows")
-    .select("followee_id")
-    .eq("follower_id", eu.userId);
-  if (error) throw new Error("Não foi possível carregar quem você segue.");
-  return data.map((linha) => linha.followee_id as string);
 }
 
 export async function listarHats(aba: AbaDoFeed = "paraVoce"): Promise<Post[]> {
@@ -130,6 +115,37 @@ export async function listarHatsDoAutor(autorId: string): Promise<Post[]> {
   return data.map(paraPost);
 }
 
+/** Hats ativos curtidos por uma pessoa, do Fogo mais recente para o mais antigo. */
+export async function listarHatsCurtidos(pessoaId: string): Promise<Post[]> {
+  const curtidas = await supabase
+    .from("likes")
+    .select("hat_id")
+    .eq("user_id", pessoaId)
+    .order("created_at", { ascending: false })
+    .limit(LIMITE_DO_FEED);
+  if (curtidas.error) throw new Error("Falha ao buscar os Fogos deste perfil.");
+
+  const ids = curtidas.data.map((linha) => linha.hat_id as string);
+  if (ids.length === 0) return [];
+
+  const { data, error } = await consultaDeHats().in("id", ids).returns<LinhaHat[]>();
+  if (error) throw new Error("Falha ao buscar os Fogos deste perfil.");
+
+  const porId = new Map(data.map((linha) => [linha.id, paraPost(linha)]));
+  return ids.flatMap((id) => porId.get(id) ?? []);
+}
+
+export async function buscarHats(termo: string): Promise<Post[]> {
+  const contem = filtroContem(termo);
+  const { data, error } = await consultaDeHats()
+    .or(`content.ilike.${contem},display_name.ilike.${contem}`)
+    .order("created_at", { ascending: false })
+    .limit(30)
+    .returns<LinhaHat[]>();
+  if (error) throw new Error("Não foi possível buscar hats.");
+  return data.map(paraPost);
+}
+
 export async function buscarHat(id: string): Promise<Post> {
   const { data, error } = await consultaDeHats().eq("id", id).maybeSingle<LinhaHat>();
   if (error) throw new Error("Não foi possível abrir este hat.");
@@ -145,14 +161,12 @@ export async function criarHat(conteudo: string, anonimo: boolean): Promise<Post
     .single();
   if (error) throw new Error("Não foi possível publicar seu hat.");
 
-  avisarPostsAtualizados();
   return buscarHat(data.id as string);
 }
 
 export async function excluirHat(id: string): Promise<void> {
   const { error } = await supabase.rpc("delete_hat", { alvo: id });
   if (error) throw new Error("Você não pode excluir este hat.");
-  avisarPostsAtualizados();
 }
 
 /** Liga ou desliga o Fogo da pessoa e devolve o hat com a contagem do servidor. */
@@ -167,7 +181,6 @@ export async function alternarFogo(post: Post): Promise<Post> {
   // 23505: o Fogo já existe, por exemplo se foi dado em outra aba
   if (error && error.code !== "23505") throw new Error("Não foi possível dar Fogo agora.");
 
-  avisarPostsAtualizados();
   return buscarHat(post.id);
 }
 

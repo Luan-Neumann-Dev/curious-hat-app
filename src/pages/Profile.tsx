@@ -53,6 +53,7 @@ export function Profile({ onProfileSaved, onLogout }: ProfileProps) {
 
   return (
     <ProfileView
+      key={dadosExibidos.userId}
       dados={dadosExibidos}
       visitandoOutroUsuario={visitandoOutroUsuario}
       posts={posts}
