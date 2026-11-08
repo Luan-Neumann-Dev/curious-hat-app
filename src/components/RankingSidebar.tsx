@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Flame, Trophy } from "lucide-react";
-import { getPosts } from "../services/api";
+import { listarTopHats } from "../services/hats";
 import type { Post } from "../types";
 
 export function RankingSidebar() {
@@ -11,11 +11,7 @@ export function RankingSidebar() {
   useEffect(() => {
     async function carregarRanking() {
       try {
-        const todos = await getPosts();
-        const ordenadosPorFogo = [...todos]
-          .sort((a, b) => (Number(b.likes) || 0) - (Number(a.likes) || 0))
-          .slice(0, 5);
-        setTopPosts(ordenadosPorFogo);
+        setTopPosts(await listarTopHats());
       } catch {
         // Silencioso caso a API falhe
       } finally {
@@ -47,7 +43,7 @@ export function RankingSidebar() {
           <p className="text-xs text-muted py-4 text-center">Carregando ranking...</p>
         ) : topPosts.length === 0 ? (
           <p className="text-xs text-muted py-4 text-center">
-            Nenhuma publicação ativa no ranking ainda.
+            Nenhum hat com Fogo no ranking ainda.
           </p>
         ) : (
           <ol className="space-y-3">
@@ -71,13 +67,13 @@ export function RankingSidebar() {
                         #{index + 1}
                       </span>
                       <span className="text-xs font-bold text-fg-soft truncate group-hover:text-fg">
-                        {post.isAnonymous ? `🎩 @${post.codename}` : post.codename}
+                        {post.isAnonymous ? `🎩 @${post.displayName}` : post.displayName}
                       </span>
                     </div>
 
                     <span className="flex items-center gap-1 text-xs font-extrabold text-accent bg-accent-soft/60 border border-accent/40 px-2 py-0.5 rounded-full shrink-0">
                       <Flame size={13} className="fill-accent" aria-hidden="true" />
-                      {post.likes || 0}
+                      {post.likes}
                     </span>
                   </div>
 

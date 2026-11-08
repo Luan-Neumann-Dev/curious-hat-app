@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Flame, Trash2, Clock, MessageSquare } from "lucide-react";
 import { avatarPorSemente } from "../lib/avatar";
-import { hasUserLiked } from "../services/api";
 import type { Post } from "../types";
 
 interface GossipCardProps {
@@ -18,16 +17,15 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
   // Enquanto a curtida é salva, mostra o resultado esperado; depois volta a seguir o post.
   const [curtidaOtimista, setCurtidaOtimista] = useState<boolean | null>(null);
   const [processandoLike, setProcessandoLike] = useState(false);
-  const jaCurtiu = curtidaOtimista ?? hasUserLiked(post);
+  const jaCurtiu = curtidaOtimista ?? post.likedByMe;
 
   useEffect(() => {
     function calcularTempo() {
-      const diferenca = Number(post.expiresAt) - Date.now();
-      const cinquentaAnosEmMs = 50 * 365 * 24 * 60 * 60 * 1000;
-      if (!post.isAnonymous || diferenca > cinquentaAnosEmMs) {
+      if (!post.expiresAt) {
         setTempoRestante("");
         return;
       }
+      const diferenca = new Date(post.expiresAt).getTime() - Date.now();
       if (diferenca <= 0) {
         setTempoRestante("Expirado!");
         if (onExpire) onExpire(post.id);
@@ -46,14 +44,14 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
     calcularTempo();
     const intervalo = setInterval(calcularTempo, 1000);
     return () => clearInterval(intervalo);
-  }, [post.expiresAt, post.id, post.isAnonymous, onExpire]);
+  }, [post.expiresAt, post.id, onExpire]);
 
   async function handleCliqueFogo() {
     if (processandoLike) return;
 
     try {
       setProcessandoLike(true);
-      setCurtidaOtimista(!hasUserLiked(post));
+      setCurtidaOtimista(!post.likedByMe);
       await onLike(post);
     } finally {
       setCurtidaOtimista(null);
@@ -61,7 +59,7 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
     }
   }
 
-  const perfilDestino = post.authorId || encodeURIComponent(post.codename);
+  const perfilDestino = post.authorId ?? "";
   return (
     <article className="border-b border-fg/30 p-4 sm:p-5 bg-app hover:bg-surface transition-colors">
       <div className="flex items-start gap-3">
@@ -75,12 +73,12 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
         ) : (
           <Link
             to={`/perfil/${perfilDestino}`}
-            title={`Ver perfil de ${post.codename}`}
+            title={`Ver perfil de ${post.displayName}`}
             className="shrink-0 group"
           >
             <img
-              src={post.authorAvatar || avatarPorSemente(post.codename)}
-              alt={post.codename}
+              src={post.authorAvatar || avatarPorSemente(post.authorHandle || post.displayName)}
+              alt={post.displayName}
               className="w-10 h-10 rounded-full object-cover border border-fg/30 group-hover:border-accent transition"
             />
           </Link>
@@ -91,7 +89,7 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
               {post.isAnonymous ? (
                 <>
                   <span className="font-extrabold text-anon text-sm sm:text-base">
-                    @{post.codename}
+                    @{post.displayName}
                   </span>
                   <span className="text-[11px] bg-anon-soft/80 text-anon border border-anon/40 px-2 py-0.5 rounded-full font-semibold">
                     Anônimo
@@ -103,10 +101,10 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
                   className="flex flex-wrap items-center gap-x-1.5 group min-w-0"
                 >
                   <span className="font-extrabold text-fg group-hover:underline text-sm sm:text-base">
-                    {post.codename}
+                    {post.displayName}
                   </span>
                   <span className="text-xs text-muted">
-                    @{post.authorHandle || post.codename?.toLowerCase().replace(/\s+/g, "")}
+                    @{post.authorHandle}
                   </span>
                 </Link>
               )}
@@ -140,7 +138,7 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
                 aria-hidden="true"
                 className={jaCurtiu ? "fill-accent text-accent" : ""}
               />
-              <span>{post.likes || 0} Fogos</span>
+              <span>{post.likes} Fogos</span>
             </button>
             {showDetailsLink && (
               <Link
@@ -148,12 +146,10 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
                 className="flex items-center gap-1.5 text-fg-soft hover:text-accent font-semibold py-1 px-2 rounded hover:bg-raised transition"
               >
                 <MessageSquare size={16} aria-hidden="true" />
-                <span>
-                  Respostas ({Array.isArray(post.replies) ? post.replies.length : 0})
-                </span>
+                <span>Respostas ({post.repliesCount})</span>
               </Link>
             )}
-            {onDeleteRequest && (
+            {onDeleteRequest && post.isMine && (
               <button
                 type="button"
                 onClick={() => onDeleteRequest(post)}

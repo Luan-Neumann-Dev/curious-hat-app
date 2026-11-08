@@ -3,10 +3,13 @@ import { Search as SearchIcon } from "lucide-react";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { GossipCard } from "../components/GossipCard";
 import { mensagemDeErro } from "../lib/errors";
-import { getPosts, togglePostLike, deletePost } from "../services/api";
+import { alternarFogo, excluirHat, listarHats } from "../services/hats";
 import type { Post } from "../types";
 
-const CINQUENTA_ANOS_MS = 50 * 365 * 24 * 60 * 60 * 1000;
+/** Hats sem expiração ficam por último na ordem "Prestes a Sumir". */
+function momentoDeExpirar(post: Post): number {
+  return post.expiresAt ? new Date(post.expiresAt).getTime() : Number.POSITIVE_INFINITY;
+}
 
 export function SearchPage() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -23,7 +26,7 @@ export function SearchPage() {
     async function carregar() {
       try {
         setLoading(true);
-        const dados = await getPosts();
+        const dados = await listarHats();
         setPosts(dados);
       } catch (err) {
         setError(mensagemDeErro(err));
@@ -36,7 +39,7 @@ export function SearchPage() {
 
   async function handleDarFogo(post: Post) {
     try {
-      const atualizado = await togglePostLike(post);
+      const atualizado = await alternarFogo(post);
       setPosts((atuais) => atuais.map((p) => (p.id === post.id ? atualizado : p)));
     } catch {
       setError("Erro ao dar fogo.");
@@ -46,7 +49,7 @@ export function SearchPage() {
   async function confirmarExclusao() {
     if (!postParaDeletar) return;
     try {
-      await deletePost(postParaDeletar.id);
+      await excluirHat(postParaDeletar.id);
       setPosts((atuais) => atuais.filter((p) => p.id !== postParaDeletar.id));
       setPostParaDeletar(null);
     } catch {
@@ -59,10 +62,10 @@ export function SearchPage() {
       const termo = busca.toLowerCase();
       const bateTexto =
         post.content?.toLowerCase().includes(termo) ||
-        post.codename?.toLowerCase().includes(termo) ||
+        post.displayName.toLowerCase().includes(termo) ||
         post.title?.toLowerCase().includes(termo);
 
-      const ehFixo = Number(post.expiresAt) - Number(post.createdAt) > CINQUENTA_ANOS_MS;
+      const ehFixo = post.expiresAt === null;
       const bateTipo =
         filtroTipo === "Todos" ||
         (filtroTipo === "Temporarios" && !ehFixo) ||
@@ -71,9 +74,9 @@ export function SearchPage() {
       return bateTexto && bateTipo;
     })
     .sort((a, b) => {
-      if (ordenacao === "fogos") return (Number(b.likes) || 0) - (Number(a.likes) || 0);
-      if (ordenacao === "expirando") return Number(a.expiresAt) - Number(b.expiresAt);
-      return Number(b.createdAt) - Number(a.createdAt);
+      if (ordenacao === "fogos") return b.likes - a.likes;
+      if (ordenacao === "expirando") return momentoDeExpirar(a) - momentoDeExpirar(b);
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
   return (

@@ -20,10 +20,10 @@ export function ConfirmModal({ post, onCancel, onConfirm, isDeleting }: ConfirmM
     >
       <div className="bg-app border-2 border-danger rounded-2xl max-w-md w-full p-6 shadow-2xl">
         <h2 id="modal-titulo" className="text-xl font-bold text-fg mb-2">
-          🔥 Queimar este segredo?
+          🔥 Queimar este hat?
         </h2>
-        <p className="text-fg-soft text-sm mb-6">
-          Você está prestes a destruir a fofoca <strong className="text-accent">"{post.title}"</strong> antes do tempo acabar. Essa ação não pode ser desfeita!
+        <p className="text-fg-soft text-sm mb-6 [overflow-wrap:anywhere]">
+          Você está prestes a destruir o hat <strong className="text-accent">"{post.title || post.content.slice(0, 80)}"</strong>. Essa ação não pode ser desfeita!
         </p>
 
         <div className="flex justify-end gap-3">

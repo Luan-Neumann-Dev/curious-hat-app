@@ -48,6 +48,9 @@ export function getCurrentProfile(): UserProfile | null {
 function removerContasAntigas(): void {
   localStorage.removeItem("curiousHat_profile");
   localStorage.removeItem("curiousHat_users");
+  Object.keys(localStorage)
+    .filter((chave) => chave.startsWith("curiousHat_likes_"))
+    .forEach((chave) => localStorage.removeItem(chave));
 }
 
 function formatarEntrada(data: string): string {

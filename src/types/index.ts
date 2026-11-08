@@ -1,32 +1,37 @@
-export interface Reply {
-  id: string;
-  text: string;
-  createdAt: string;
-}
+export type AbaDoFeed = "paraVoce" | "seguindo" | "anonimos";
 
+/** Hat como vem da view pública: authorId é nulo nos anônimos. */
 export interface Post {
   id: string;
-  codename: string;
+  authorId: string | null;
+  isAnonymous: boolean;
+  isMine: boolean;
+  /** Nome no site ou, nos anônimos, o vulgo. */
+  displayName: string;
+  authorHandle: string | null;
+  authorAvatar: string | null;
   title: string;
-  category: string;
-  spiciness: string;
   content: string;
+  createdAt: string;
+  /** Nulo nos hats com nome, que não expiram. */
+  expiresAt: string | null;
   likes: number;
-  createdAt: number;
-  expiresAt: number;
-  replies: Reply[];
-  /** Ausente em posts antigos, criados antes do modo anônimo. */
-  isAnonymous?: boolean;
-  likedBy?: string[];
-  authorId?: string | null;
-  authorAvatar?: string | null;
-  authorBanner?: string | null;
-  authorBio?: string | null;
-  authorHandle?: string | null;
-  authorJoinedAt?: string | null;
+  repliesCount: number;
+  likedByMe: boolean;
 }
 
-export type NewPost = Omit<Post, "id">;
+export interface Reply {
+  id: string;
+  hatId: string;
+  authorId: string | null;
+  isAnonymous: boolean;
+  isMine: boolean;
+  displayName: string;
+  authorHandle: string | null;
+  authorAvatar: string | null;
+  content: string;
+  createdAt: string;
+}
 
 export interface UserProfile {
   userId: string;

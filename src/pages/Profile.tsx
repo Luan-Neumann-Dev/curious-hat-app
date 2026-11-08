@@ -44,7 +44,11 @@ export function Profile({ onProfileSaved, onLogout }: ProfileProps) {
   const dadosExibidos = visitandoOutroUsuario ? perfilVisitado : meuPerfil;
 
   if (!dadosExibidos) {
-    return <p className="p-8 text-center text-muted">Carregando perfil...</p>;
+    return (
+      <p className="p-8 text-center text-muted">
+        {loading ? "Carregando perfil..." : "Perfil não encontrado."}
+      </p>
+    );
   }
 
   return (

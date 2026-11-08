@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, Check, LogOut, Plus, UserPlus } from "lucide-react";
 import { AVATAR_PADRAO } from "../../lib/avatar";
-import { deletePost, togglePostLike } from "../../services/api";
+import { alternarFogo, excluirHat } from "../../services/hats";
 import type { Post, PublicProfile } from "../../types";
 import { ConfirmModal } from "../ConfirmModal";
 import { GossipCard } from "../GossipCard";
@@ -33,19 +33,19 @@ export function ProfileView({
   const [postParaDeletar, setPostParaDeletar] = useState<Post | null>(null);
 
   async function handleDarFogo(post: Post) {
-    const atualizado = await togglePostLike(post);
+    const atualizado = await alternarFogo(post);
     setPosts((atuais) => atuais.map((p) => (p.id === post.id ? atualizado : p)));
   }
 
   async function confirmarExclusao() {
     if (!postParaDeletar) return;
-    await deletePost(postParaDeletar.id);
+    await excluirHat(postParaDeletar.id);
     setPosts((atuais) => atuais.filter((p) => p.id !== postParaDeletar.id));
     setPostParaDeletar(null);
   }
 
   const postsExibidos =
-    abaAtiva === "curtidas" ? posts.filter((p) => (Number(p.likes) || 0) > 0) : posts;
+    abaAtiva === "curtidas" ? posts.filter((p) => p.likes > 0) : posts;
 
   return (
     <div>
