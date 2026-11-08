@@ -1,10 +1,13 @@
 import { Routes, Route } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
+import { Chat } from "../pages/Chat";
 import { Communities } from "../pages/Communities";
 import { Feed } from "../pages/Feed";
 import { GossipDetail } from "../pages/GossipDetail";
+import { Help } from "../pages/Help";
 import { Profile } from "../pages/Profile";
 import { SearchPage } from "../pages/SearchPage";
+import { Settings } from "../pages/Settings";
 import type { UserProfile } from "../types";
 import { Navbar } from "./Navbar";
 import { SideRail } from "./SideRail";
@@ -47,6 +50,10 @@ export function AppLayout({ aviso, onFecharAviso, onProfileSaved, onLogout }: Ap
             <Route path="/" element={<Feed />} />
             <Route path="/buscar" element={<SearchPage />} />
             <Route path="/comunidades" element={<Communities />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/chat/:id" element={<Chat />} />
+            <Route path="/config" element={<Settings onLogout={onLogout} />} />
+            <Route path="/ajuda" element={<Help />} />
             <Route path="/fofoca/:id" element={<GossipDetail />} />
             <Route path="/perfil" element={paginaDePerfil} />
             <Route path="/perfil/:id" element={paginaDePerfil} />

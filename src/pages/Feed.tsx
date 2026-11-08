@@ -29,7 +29,7 @@ export function Feed() {
   const [error, setError] = useState("");
   const [perfil] = useState(getCurrentProfile);
   const [textoNovidade, setTextoNovidade] = useState("");
-  const [modoAnonimo, setModoAnonimo] = useState(false);
+  const [modoAnonimo, setModoAnonimo] = useState(() => perfil?.preferencias.anonimoPorPadrao ?? false);
   const { comunidades, minhasIds } = useCommunities();
   const [comunidadeEscolhida, setComunidadeEscolhida] = useState("");
   const [erroPostRapido, setErroPostRapido] = useState("");

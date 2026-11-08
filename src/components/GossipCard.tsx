@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Flame, Trash2, Clock, MessageSquare, Users } from "lucide-react";
 import { avatarPorSemente } from "../lib/avatar";
 import { comPlural } from "../lib/plural";
+import { getCurrentProfile } from "../services/session";
 import type { Post } from "../types";
 
 interface GossipCardProps {
@@ -19,6 +20,7 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
   const [curtidaOtimista, setCurtidaOtimista] = useState<boolean | null>(null);
   const [processandoLike, setProcessandoLike] = useState(false);
   const jaCurtiu = curtidaOtimista ?? post.likedByMe;
+  const mostrarContagens = getCurrentProfile()?.preferencias.mostrarContagens ?? true;
 
   useEffect(() => {
     function calcularTempo() {
@@ -145,7 +147,7 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
                 aria-hidden="true"
                 className={jaCurtiu ? "fill-accent text-accent" : ""}
               />
-              <span>{comPlural(post.likes, "Fogo", "Fogos")}</span>
+              <span>{mostrarContagens ? comPlural(post.likes, "Fogo", "Fogos") : "Fogo"}</span>
             </button>
             {showDetailsLink && (
               <Link
@@ -153,7 +155,7 @@ export function GossipCard({ post, onLike, onDeleteRequest, onExpire, showDetail
                 className="flex items-center gap-1.5 text-fg-soft hover:text-accent font-semibold py-1 px-2 rounded hover:bg-raised transition"
               >
                 <MessageSquare size={16} aria-hidden="true" />
-                <span>Respostas ({post.repliesCount})</span>
+                <span>{mostrarContagens ? `Respostas (${post.repliesCount})` : "Respostas"}</span>
               </Link>
             )}
             {onDeleteRequest && post.isMine && (

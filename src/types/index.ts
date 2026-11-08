@@ -49,6 +49,41 @@ export interface EstatisticasDoPerfil {
   euSigo: boolean;
 }
 
+export interface Preferencias {
+  anonimoPorPadrao: boolean;
+  aceitarChatsAnonimos: boolean;
+  mostrarContagens: boolean;
+}
+
+export interface Conversa {
+  id: string;
+  tipo: "direct" | "anonymous" | "group";
+  titulo: string;
+  subtitulo: string;
+  avatar: string | null;
+  /** Nulo em grupos e quando a outra pessoa está anônima. */
+  pessoaId: string | null;
+  meuMembroId: string;
+  outroAnonimo: boolean;
+  ultimaMensagem: string | null;
+  ultimaEm: string | null;
+}
+
+export interface Mensagem {
+  id: string;
+  conversaId: string;
+  membroId: string;
+  texto: string;
+  criadaEm: string;
+}
+
+export interface ParticipanteDoChat {
+  membroId: string;
+  anonimo: boolean;
+  eu: boolean;
+  nome: string | null;
+}
+
 export interface UserProfile {
   userId: string;
   fullName: string;
@@ -61,6 +96,7 @@ export interface UserProfile {
   avatarUrl: string;
   bannerImage: string;
   joinedAt: string;
+  preferencias: Preferencias;
 }
 
 /** Dados que podem aparecer na página pública de um perfil. */

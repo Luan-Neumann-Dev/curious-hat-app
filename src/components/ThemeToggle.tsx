@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
 type Tema = "dark" | "light";
 
 const CHAVE_TEMA = "curiousHat_theme";
+const EVENTO_TEMA = "curiousHat_themeChanged";
 
 function temaAtual(): Tema {
   return document.documentElement.dataset.theme === "light" ? "light" : "dark";
@@ -14,6 +15,15 @@ export function ThemeToggle() {
   const proximoTema: Tema = tema === "dark" ? "light" : "dark";
   const rotulo = proximoTema === "light" ? "Ativar tema claro" : "Ativar tema escuro";
 
+  // A tela Config mostra um segundo botão, que precisa acompanhar o do menu
+  useEffect(() => {
+    function sincronizar() {
+      setTema(temaAtual());
+    }
+    window.addEventListener(EVENTO_TEMA, sincronizar);
+    return () => window.removeEventListener(EVENTO_TEMA, sincronizar);
+  }, []);
+
   function alternarTema() {
     document.documentElement.dataset.theme = proximoTema;
     try {
@@ -21,7 +31,7 @@ export function ThemeToggle() {
     } catch {
       // Sem acesso ao armazenamento, o tema vale só até recarregar a página.
     }
-    setTema(proximoTema);
+    window.dispatchEvent(new Event(EVENTO_TEMA));
   }
 
   return (

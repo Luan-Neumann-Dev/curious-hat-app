@@ -40,7 +40,7 @@ export function GossipDetail() {
   const [aviso, setAviso] = useState("");
 
   const [respostaTexto, setRespostaTexto] = useState("");
-  const [respostaAnonima, setRespostaAnonima] = useState(false);
+  const [respostaAnonima, setRespostaAnonima] = useState(() => perfil?.preferencias.anonimoPorPadrao ?? false);
   const [erroResposta, setErroResposta] = useState("");
   const [enviandoResposta, setEnviandoResposta] = useState(false);
   const [modalAberto, setModalAberto] = useState(false);

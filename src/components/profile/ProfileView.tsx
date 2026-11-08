@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, LogOut, Plus, Users } from "lucide-react";
+import { ArrowLeft, Calendar, LogOut, MessageCircle, Plus, Users } from "lucide-react";
 import { AVATAR_PADRAO } from "../../lib/avatar";
 import { mensagemDeErro } from "../../lib/errors";
 import { comPlural } from "../../lib/plural";
 import { alternarFogo, excluirHat, listarHatsCurtidos } from "../../services/hats";
+import { iniciarConversa } from "../../services/chat";
 import { EVENTO_COMUNIDADES, listarComunidadesDaPessoa } from "../../services/communities";
 import { carregarEstatisticas, EVENTO_SEGUIDORES } from "../../services/social";
 import type { Comunidade, EstatisticasDoPerfil, Post, PublicProfile } from "../../types";
@@ -94,6 +95,15 @@ export function ProfileView({
     carregarAba();
   }
 
+  async function abrirConversa(anonima: boolean) {
+    try {
+      setErro("");
+      navigate(`/chat/${await iniciarConversa(dados.userId, anonima)}`);
+    } catch (err) {
+      setErro(mensagemDeErro(err));
+    }
+  }
+
   function aplicarNasListas(atualizar: (lista: Post[]) => Post[]) {
     setPosts(atualizar);
     setCurtidos(atualizar);
@@ -134,7 +144,7 @@ export function ProfileView({
           <ArrowLeft size={20} aria-hidden="true" />
         </button>
         <div>
-          <h1 className="text-lg font-extrabold text-fg leading-tight">
+          <h1 className="text-lg font-extrabold text-fg leading-tight [overflow-wrap:anywhere]">
             {dados.accountName}
           </h1>
           <p className="text-xs text-muted">{comPlural(posts.length, "hat", "hats")}</p>
@@ -174,12 +184,32 @@ export function ProfileView({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             {visitandoOutroUsuario ? (
-              <FollowButton
-                userId={dados.userId}
-                seguindo={estatisticas?.euSigo ?? false}
-              />
+              <>
+                <button
+                  type="button"
+                  onClick={() => abrirConversa(false)}
+                  aria-label="Mensagem"
+                  title="Mensagem"
+                  className="p-2 rounded-full border border-fg/50 hover:bg-raised text-fg transition cursor-pointer"
+                >
+                  <MessageCircle size={18} aria-hidden="true" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => abrirConversa(true)}
+                  aria-label="Mensagem anônima"
+                  title="Mensagem anônima"
+                  className="p-2 w-[38px] h-[38px] leading-none rounded-full border border-anon bg-anon-soft/40 hover:bg-anon-soft transition cursor-pointer"
+                >
+                  <span aria-hidden="true">🎩</span>
+                </button>
+                <FollowButton
+                  userId={dados.userId}
+                  seguindo={estatisticas?.euSigo ?? false}
+                />
+              </>
             ) : (
               <>
                 <button

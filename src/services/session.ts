@@ -1,14 +1,14 @@
 import type { User } from "@supabase/supabase-js";
 import { avatarPorSemente } from "../lib/avatar";
 import { supabase } from "../lib/supabase";
-import type { PublicProfile, UserProfile } from "../types";
+import type { Preferencias, PublicProfile, UserProfile } from "../types";
 
 const BUCKET_IMAGENS = "profile-images";
 export const COLUNAS_PUBLICAS = "id, account_name, handle, bio, avatar_url, banner_url, joined_at";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Campos do formulário de perfil. A senha nunca faz parte do perfil. */
-export type DadosDoPerfil = Omit<UserProfile, "userId" | "joinedAt" | "publicHandle">;
+export type DadosDoPerfil = Omit<UserProfile, "userId" | "joinedAt" | "publicHandle" | "preferencias">;
 
 export interface LinhaPerfil {
   id: string;
@@ -77,7 +77,7 @@ async function carregarPerfil(usuario: User): Promise<UserProfile> {
     supabase.from("profiles").select(COLUNAS_PUBLICAS).eq("id", usuario.id).single<LinhaPerfil>(),
     supabase
       .from("profile_private")
-      .select("full_name, birth_date, codename")
+      .select("full_name, birth_date, codename, anon_by_default, accept_anon_chats, show_counts")
       .eq("id", usuario.id)
       .single(),
   ]);
@@ -90,6 +90,11 @@ async function carregarPerfil(usuario: User): Promise<UserProfile> {
     fullName: privado.data.full_name,
     birthDate: privado.data.birth_date ?? "",
     codename: privado.data.codename,
+    preferencias: {
+      anonimoPorPadrao: privado.data.anon_by_default,
+      aceitarChatsAnonimos: privado.data.accept_anon_chats,
+      mostrarContagens: privado.data.show_counts,
+    },
   };
   return perfilAtual;
 }
@@ -226,6 +231,22 @@ export async function salvarPerfil(
   const { data, error } = await supabase.auth.getUser();
   if (error) throw erroTraduzido(error);
   return carregarPerfil(data.user);
+}
+
+export async function salvarPreferencias(preferencias: Preferencias): Promise<void> {
+  if (!perfilAtual) return;
+
+  const { error } = await supabase
+    .from("profile_private")
+    .update({
+      anon_by_default: preferencias.anonimoPorPadrao,
+      accept_anon_chats: preferencias.aceitarChatsAnonimos,
+      show_counts: preferencias.mostrarContagens,
+    })
+    .eq("id", perfilAtual.userId);
+  if (error) throw new Error("Não foi possível salvar a preferência.");
+
+  perfilAtual = { ...perfilAtual, preferencias };
 }
 
 /** Busca um perfil pelo id ou pelo nome no site. */
