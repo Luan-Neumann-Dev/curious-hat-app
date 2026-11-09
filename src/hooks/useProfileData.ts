@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { mensagemDeErro } from "../lib/errors";
 import { listarHatsDoAutor } from "../services/hats";
 import { buscarPerfilPublico } from "../services/session";
 import type { Post, PublicProfile, UserProfile } from "../types";
@@ -12,11 +13,13 @@ export function useProfileData(
   const [posts, setPosts] = useState<Post[]>([]);
   const [perfilVisitado, setPerfilVisitado] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
 
   useEffect(() => {
     async function carregar() {
       try {
         setLoading(true);
+        setErro("");
 
         if (visitandoOutroUsuario && idVisitado) {
           const perfil = await buscarPerfilPublico(decodeURIComponent(idVisitado));
@@ -26,8 +29,9 @@ export function useProfileData(
           setPerfilVisitado(null);
           setPosts(await listarHatsDoAutor(meuPerfil.userId));
         }
-      } catch {
+      } catch (falha) {
         setPosts([]);
+        setErro(mensagemDeErro(falha));
       } finally {
         setLoading(false);
       }
@@ -35,5 +39,5 @@ export function useProfileData(
     carregar();
   }, [idVisitado, visitandoOutroUsuario, meuPerfil]);
 
-  return { posts, setPosts, perfilVisitado, loading };
+  return { posts, setPosts, perfilVisitado, loading, erro };
 }

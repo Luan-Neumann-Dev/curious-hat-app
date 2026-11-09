@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, LogOut, MessageCircle, Plus, Users } from "lucide-react";
+import { useAnuncio } from "../../hooks/useAnuncio";
 import { AVATAR_PADRAO } from "../../lib/avatar";
 import { mensagemDeErro } from "../../lib/errors";
 import { comPlural } from "../../lib/plural";
@@ -10,6 +11,7 @@ import { iniciarConversa } from "../../services/chat";
 import { EVENTO_COMUNIDADES, listarComunidadesDaPessoa } from "../../services/communities";
 import { carregarEstatisticas, EVENTO_SEGUIDORES } from "../../services/social";
 import type { Comunidade, EstatisticasDoPerfil, Post, PublicProfile } from "../../types";
+import { Abas, PainelDaAba } from "../Abas";
 import { ConfirmModal } from "../ConfirmModal";
 import { FollowButton } from "../FollowButton";
 import { GossipCard } from "../GossipCard";
@@ -131,6 +133,7 @@ export function ProfileView({
   }
 
   const postsExibidos = abaAtiva === "fogos" ? curtidos : posts;
+  useAnuncio(carregandoAba ? "Carregando..." : "");
 
   return (
     <div>
@@ -266,26 +269,9 @@ export function ProfileView({
         </div>
       </div>
 
-      <div role="tablist" aria-label="Conteúdo do perfil" className="grid grid-cols-3 border-b border-fg/30 text-sm font-bold text-center">
-        {ABAS.map((aba) => (
-          <button
-            key={aba.id}
-            type="button"
-            role="tab"
-            aria-selected={abaAtiva === aba.id}
-            onClick={() => abrirAba(aba.id)}
-            className={`py-3.5 px-1 hover:bg-raised/60 transition cursor-pointer relative ${
-              abaAtiva === aba.id ? "text-fg" : "text-muted"
-            }`}
-          >
-            <span>{aba.rotulo}</span>
-            {abaAtiva === aba.id && (
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-accent rounded-full" />
-            )}
-          </button>
-        ))}
-      </div>
+      <Abas base="perfil" rotulo="Conteúdo do perfil" abas={ABAS} ativa={abaAtiva} onChange={abrirAba} />
 
+      <PainelDaAba base="perfil" ativa={abaAtiva}>
       {erro && (
         <div role="alert" className="m-4 p-3 border border-danger bg-danger-soft/70 text-fg text-sm rounded-xl">
           {erro}
@@ -334,6 +320,7 @@ export function ProfileView({
           />
         ))
       )}
+      </PainelDaAba>
 
       <ConfirmModal
         post={postParaDeletar}

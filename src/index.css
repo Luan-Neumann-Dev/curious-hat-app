@@ -92,3 +92,8 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+
+/* Contêineres que só recebem foco por código, como o conteúdo ao trocar de tela. */
+[tabindex="-1"]:focus-visible {
+  outline: none;
+}

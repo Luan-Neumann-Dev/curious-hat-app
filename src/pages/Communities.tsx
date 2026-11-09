@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Search as SearchIcon, Users } from "lucide-react";
 import { JoinButton } from "../components/JoinButton";
+import { useAnuncio } from "../hooks/useAnuncio";
 import { useCommunities } from "../hooks/useCommunities";
 import { comPlural } from "../lib/plural";
 import type { Comunidade } from "../types";
@@ -46,6 +47,11 @@ export function Communities() {
 
   const grade = "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3";
 
+  let status = "";
+  if (loading) status = "Carregando comunidades...";
+  else if (termo && !erro) status = comPlural(filtradas.length, "comunidade encontrada", "comunidades encontradas");
+  useAnuncio(status);
+
   return (
     <div>
       <div className="border-b border-fg/40 p-4 bg-app">
@@ -78,9 +84,11 @@ export function Communities() {
           </div>
 
           {filtradas.length === 0 ? (
-            <p className="py-6 text-center text-muted [overflow-wrap:anywhere]">
-              Nenhuma comunidade encontrada para "{busca.trim()}".
-            </p>
+            !erro && (
+              <p className="py-6 text-center text-muted [overflow-wrap:anywhere]">
+                Nenhuma comunidade encontrada para "{busca.trim()}".
+              </p>
+            )
           ) : (
             <>
               <section aria-labelledby="titulo-top-comunidades">
@@ -123,7 +131,7 @@ export function Communities() {
               Suas comunidades
             </h2>
             {minhas.length === 0 ? (
-              <p className="text-sm text-muted">Você ainda não entrou em nenhuma comunidade.</p>
+              !erro && <p className="text-sm text-muted">Você ainda não entrou em nenhuma comunidade.</p>
             ) : (
               <ul className={grade}>
                 {minhas.map((comunidade) => (

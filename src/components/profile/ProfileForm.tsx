@@ -13,6 +13,27 @@ type FormData = DadosDoPerfil & { password: string };
 type CampoDoForm = keyof FormData;
 type ErrosDoForm = Partial<Record<CampoDoForm, string>>;
 
+const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const ORDEM_DOS_CAMPOS: CampoDoForm[] = [
+  "accountName",
+  "codename",
+  "bio",
+  "fullName",
+  "email",
+  "birthDate",
+  "password",
+];
+
+function ErroDoCampo({ campo, mensagem }: { campo: CampoDoForm; mensagem?: string }) {
+  if (!mensagem) return null;
+  return (
+    <p id={`erro-${campo}`} className="text-danger text-xs font-bold mt-1">
+      <span aria-hidden="true">⚠️ </span>
+      {mensagem}
+    </p>
+  );
+}
+
 interface ProfileFormProps {
   /** `null` quando é um cadastro novo. */
   perfilAtual: UserProfile | null;
@@ -52,7 +73,15 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
       setForm((prev) => ({ ...prev, [campoDestino]: base64Comprimido }));
     } catch {
       // Mantém a imagem atual se o arquivo não puder ser lido
+      setErroGeral("Não foi possível ler essa imagem. Tente outro arquivo.");
     }
+  }
+
+  /** Liga cada campo à sua mensagem de erro, para o leitor de tela anunciar as duas juntas. */
+  function atributosDeErro(campo: CampoDoForm) {
+    return erros[campo]
+      ? ({ "aria-invalid": true, "aria-describedby": `erro-${campo}` } as const)
+      : {};
   }
 
   function validarFormulario() {
@@ -60,11 +89,13 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
     if (!form.fullName.trim() || form.fullName.trim().length < 5) {
       novosErros.fullName = "Informe seu nome completo (mínimo 5 caracteres).";
     }
-    if (!form.email.trim() || !form.email.includes("@") || !form.email.includes(".")) {
+    if (!EMAIL_VALIDO.test(form.email.trim())) {
       novosErros.email = "Informe um endereço de e-mail válido.";
     }
     if (!form.birthDate) {
       novosErros.birthDate = "Informe sua data de nascimento.";
+    } else if (new Date(form.birthDate) > new Date()) {
+      novosErros.birthDate = "A data de nascimento não pode estar no futuro.";
     }
     if (form.accountName.trim().length < 3 || form.accountName.trim().length > 60) {
       novosErros.accountName = "Escolha seu Nome no Site (de 3 a 60 caracteres).";
@@ -82,7 +113,10 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
       novosErros.bio = "Escreva uma bio para o seu perfil.";
     }
     setErros(novosErros);
-    return Object.keys(novosErros).length === 0;
+
+    const primeiroComErro = ORDEM_DOS_CAMPOS.find((campo) => novosErros[campo]);
+    if (primeiroComErro) document.getElementById(primeiroComErro)?.focus();
+    return !primeiroComErro;
   }
 
   function handleChange(campo: CampoDoForm, valor: string) {
@@ -135,64 +169,60 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
           {perfilAtual ? "Editar Perfil" : "Criar sua conta no Curious Hat 🎩"}
         </h1>
         <p className="text-muted text-xs sm:text-sm mt-1">
-          Passe o cursor sobre a foto ou capa para clicar no '+' e escolher uma imagem dos seus arquivos.
+          Toque ou clique na foto ou na capa para escolher uma imagem dos seus arquivos.
         </p>
       </div>
 
       <div className="mb-6 border border-fg/30 rounded-2xl overflow-hidden bg-surface">
-        <div
+        <button
+          type="button"
           onClick={() => fileInputBannerRef.current?.click()}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && fileInputBannerRef.current?.click()}
           aria-label="Alterar papel de parede"
-          className="relative h-36 sm:h-44 w-full bg-gradient-to-r from-banner-from via-banner-via to-banner-to cursor-pointer group overflow-hidden"
+          className="block relative h-36 sm:h-44 w-full bg-gradient-to-r from-banner-from via-banner-via to-banner-to cursor-pointer group overflow-hidden"
         >
           {form.bannerImage && (
             <img
               src={form.bannerImage}
-              alt="Capa do perfil"
+              alt=""
               className="w-full h-full object-cover group-hover:opacity-50 transition-opacity"
             />
           )}
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
-            <Plus size={38} strokeWidth={2.5} className="text-white" />
+          <span className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity flex flex-col items-center justify-center text-white">
+            <Plus size={38} strokeWidth={2.5} className="text-white" aria-hidden="true" />
             <span className="text-xs font-bold mt-1">Escolher Papel de Parede</span>
-          </div>
-          <input
-            ref={fileInputBannerRef}
-            type="file"
-            accept="image/*"
-            onChange={(e) => handleImageUpload(e, "bannerImage", 900)}
-            className="hidden"
-          />
-        </div>
+          </span>
+        </button>
+        <input
+          ref={fileInputBannerRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => handleImageUpload(e, "bannerImage", 900)}
+          className="hidden"
+        />
 
         <div className="px-5 pb-4 flex items-end justify-between -mt-14 relative">
-          <div
+          <button
+            type="button"
             onClick={() => fileInputAvatarRef.current?.click()}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => e.key === "Enter" && fileInputAvatarRef.current?.click()}
             aria-label="Alterar foto de perfil"
-            className="relative w-28 h-28 rounded-full border-4 border-app bg-raised overflow-hidden cursor-pointer group shadow-xl"
+            className="relative shrink-0 w-28 h-28 rounded-full border-4 border-app bg-raised overflow-hidden cursor-pointer group shadow-xl"
           >
             <img
               src={form.avatarUrl}
-              alt="Foto de perfil"
+              alt=""
               className="w-full h-full object-cover group-hover:opacity-40 transition-opacity"
             />
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
-              <Plus size={42} strokeWidth={3} className="text-white drop-shadow" />
-            </div>
-            <input
-              ref={fileInputAvatarRef}
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleImageUpload(e, "avatarUrl", 300)}
-              className="hidden"
-            />
-          </div>
+            <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity bg-black/40">
+              <Plus size={42} strokeWidth={3} className="text-white drop-shadow" aria-hidden="true" />
+            </span>
+          </button>
+          <input
+            ref={fileInputAvatarRef}
+            type="file"
+            accept="image/*"
+            onChange={(e) => handleImageUpload(e, "avatarUrl", 300)}
+            className="hidden"
+          />
 
           <span className="text-xs text-muted">
             Clique na foto ou capa para enviar arquivo
@@ -201,6 +231,8 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
       </div>
 
       <form onSubmit={handleSalvar} noValidate className="space-y-4">
+        <p className="text-xs text-muted">Campos marcados com * são obrigatórios.</p>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="accountName" className="block font-bold text-fg text-sm mb-1">
@@ -209,14 +241,15 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
             <input
               id="accountName"
               type="text"
+              required
+              autoComplete="nickname"
               placeholder="Ex: Bernardo Bertolo"
               value={form.accountName}
               onChange={(e) => handleChange("accountName", e.target.value)}
               className="w-full bg-app border border-fg p-3 rounded-xl text-fg text-sm"
+              {...atributosDeErro("accountName")}
             />
-            {erros.accountName && (
-              <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.accountName}</p>
-            )}
+            <ErroDoCampo campo="accountName" mensagem={erros.accountName} />
           </div>
 
           <div>
@@ -226,14 +259,15 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
             <input
               id="codename"
               type="text"
+              required
+              autoComplete="off"
               placeholder="Ex: SombraDoBlocoC"
               value={form.codename}
               onChange={(e) => handleChange("codename", e.target.value)}
               className="w-full bg-app border border-accent p-3 rounded-xl text-fg text-sm"
+              {...atributosDeErro("codename")}
             />
-            {erros.codename && (
-              <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.codename}</p>
-            )}
+            <ErroDoCampo campo="codename" mensagem={erros.codename} />
           </div>
         </div>
 
@@ -244,14 +278,14 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
           <textarea
             id="bio"
             rows={2}
+            required
             maxLength={160}
             value={form.bio}
             onChange={(e) => handleChange("bio", e.target.value)}
             className="w-full bg-app border border-fg p-3 rounded-xl text-fg text-sm"
+            {...atributosDeErro("bio")}
           />
-          {erros.bio && (
-            <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.bio}</p>
-          )}
+          <ErroDoCampo campo="bio" mensagem={erros.bio} />
         </div>
 
         <div className="pt-2 border-t border-fg/20">
@@ -267,14 +301,15 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
               <input
                 id="fullName"
                 type="text"
+                required
+                autoComplete="name"
                 placeholder="Seu nome completo"
                 value={form.fullName}
                 onChange={(e) => handleChange("fullName", e.target.value)}
                 className="w-full bg-app border border-fg/60 p-3 rounded-xl text-fg text-sm"
+                {...atributosDeErro("fullName")}
               />
-              {erros.fullName && (
-                <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.fullName}</p>
-              )}
+              <ErroDoCampo campo="fullName" mensagem={erros.fullName} />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -285,16 +320,16 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
                 <input
                   id="email"
                   type="email"
+                  required
                   autoComplete="email"
                   placeholder="seuemail@exemplo.com"
                   value={form.email}
                   disabled={Boolean(perfilAtual)}
                   onChange={(e) => handleChange("email", e.target.value)}
                   className="w-full bg-app border border-fg/60 p-3 rounded-xl text-fg text-sm disabled:opacity-60"
+                  {...atributosDeErro("email")}
                 />
-                {erros.email && (
-                  <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.email}</p>
-                )}
+                <ErroDoCampo campo="email" mensagem={erros.email} />
               </div>
 
               <div>
@@ -304,13 +339,14 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
                 <input
                   id="birthDate"
                   type="date"
+                  required
+                  autoComplete="bday"
                   value={form.birthDate}
                   onChange={(e) => handleChange("birthDate", e.target.value)}
                   className="w-full bg-app border border-fg/60 p-3 rounded-xl text-fg text-sm"
+                  {...atributosDeErro("birthDate")}
                 />
-                {erros.birthDate && (
-                  <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.birthDate}</p>
-                )}
+                <ErroDoCampo campo="birthDate" mensagem={erros.birthDate} />
               </div>
             </div>
 
@@ -321,15 +357,15 @@ export function ProfileForm({ perfilAtual, onSalvo, onCancelar }: ProfileFormPro
               <input
                 id="password"
                 type="password"
+                required={!perfilAtual}
                 autoComplete="new-password"
                 placeholder={perfilAtual ? "Deixe em branco para manter a atual" : "Mínimo de 6 caracteres"}
                 value={form.password}
                 onChange={(e) => handleChange("password", e.target.value)}
                 className="w-full bg-app border border-fg/60 p-3 rounded-xl text-fg text-sm"
+                {...atributosDeErro("password")}
               />
-              {erros.password && (
-                <p role="alert" className="text-danger text-xs font-bold mt-1">⚠️ {erros.password}</p>
-              )}
+              <ErroDoCampo campo="password" mensagem={erros.password} />
             </div>
           </div>
         </div>

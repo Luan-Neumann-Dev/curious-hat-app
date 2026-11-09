@@ -67,6 +67,7 @@ export function Login({ onVoltar, onLogin }: LoginProps) {
               <input
                 id="login-email"
                 type="email"
+                autoComplete="email"
                 required
                 placeholder="seuemail@exemplo.com"
                 value={email}
@@ -85,6 +86,7 @@ export function Login({ onVoltar, onLogin }: LoginProps) {
               <input
                 id="login-password"
                 type="password"
+                autoComplete="current-password"
                 required
                 placeholder="Sua senha"
                 value={senha}

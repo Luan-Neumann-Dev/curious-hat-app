@@ -4,6 +4,7 @@ import { Search as SearchIcon, Users } from "lucide-react";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { GossipCard } from "../components/GossipCard";
 import { PersonRow } from "../components/PersonRow";
+import { useAnuncio } from "../hooks/useAnuncio";
 import { mensagemDeErro } from "../lib/errors";
 import { comPlural } from "../lib/plural";
 import { alternarFogo, buscarHats, excluirHat, listarTopHats } from "../services/hats";
@@ -27,6 +28,8 @@ export function SearchPage() {
   const [pessoas, setPessoas] = useState<PublicProfile[]>([]);
   const [comunidades, setComunidades] = useState<Comunidade[]>([]);
   const [seguidos, setSeguidos] = useState<string[]>([]);
+  // Último termo com resposta do servidor: enquanto for outro, a busca ainda está em andamento
+  const [termoConcluido, setTermoConcluido] = useState("");
   const [postParaDeletar, setPostParaDeletar] = useState<Post | null>(null);
 
   const termo = busca.trim();
@@ -51,6 +54,7 @@ export function SearchPage() {
           setPessoas(achadosPessoas);
           setComunidades(achadasComunidades);
           setSeguidos(ids);
+          setTermoConcluido(termo);
         } else {
           const lista = await listarTopHats();
           if (!ativa) return;
@@ -114,8 +118,15 @@ export function SearchPage() {
     ));
   }
 
-  const semResultados =
-    buscando && !loading && hats.length === 0 && pessoas.length === 0 && comunidades.length === 0;
+  const totalDeResultados = hats.length + pessoas.length + comunidades.length;
+  const buscaConcluida = buscando && !loading && termoConcluido === termo;
+  const semResultados = buscaConcluida && !error && totalDeResultados === 0;
+
+  let status = "";
+  if (loading || (buscando && !buscaConcluida && !error)) status = "Buscando...";
+  else if (semResultados) status = `Nada encontrado para "${termo}".`;
+  else if (buscaConcluida && !error) status = comPlural(totalDeResultados, "resultado", "resultados");
+  useAnuncio(status);
 
   return (
     <div>
@@ -167,7 +178,7 @@ export function SearchPage() {
             Top hats 🔥
           </h2>
           {topHats.length === 0 ? (
-            <p className="p-10 text-center text-muted">Nenhum hat com Fogo ainda.</p>
+            !error && <p className="p-10 text-center text-muted">Nenhum hat com Fogo ainda.</p>
           ) : (
             renderizarHats(topHats)
           )}

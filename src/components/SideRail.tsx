@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useCommunities } from "../hooks/useCommunities";
+import { mensagemDeErro } from "../lib/errors";
 import { comPlural } from "../lib/plural";
 import { listarSugestoes } from "../services/social";
 import type { PublicProfile } from "../types";
@@ -12,7 +13,7 @@ const estiloDoCartao = "border border-fg/30 rounded-2xl bg-surface p-4";
 const estiloDoTitulo = "text-base font-extrabold text-fg tracking-tight pb-3 mb-3 border-b border-fg/20";
 
 function TopComunidades() {
-  const { comunidades, minhasIds, loading } = useCommunities();
+  const { comunidades, minhasIds, loading, erro } = useCommunities();
 
   return (
     <section aria-labelledby="titulo-rail-comunidades" className={estiloDoCartao}>
@@ -22,7 +23,9 @@ function TopComunidades() {
       {loading ? (
         <p className="text-xs text-muted py-4 text-center">Carregando comunidades...</p>
       ) : comunidades.length === 0 ? (
-        <p className="text-xs text-muted py-4 text-center">Nenhuma comunidade por enquanto.</p>
+        <p className={`text-xs py-4 text-center ${erro ? "text-danger" : "text-muted"}`}>
+          {erro || "Nenhuma comunidade por enquanto."}
+        </p>
       ) : (
         <ul className="space-y-3">
           {comunidades.slice(0, TAMANHO_DO_TOP).map((comunidade) => (
@@ -50,13 +53,14 @@ function Sugestoes() {
   const [pessoas, setPessoas] = useState<PublicProfile[]>([]);
   const [seguidas, setSeguidas] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
 
   useEffect(() => {
     async function carregar() {
       try {
         setPessoas(await listarSugestoes());
-      } catch {
-        setPessoas([]);
+      } catch (falha) {
+        setErro(mensagemDeErro(falha));
       } finally {
         setLoading(false);
       }
@@ -76,7 +80,9 @@ function Sugestoes() {
       {loading ? (
         <p className="text-xs text-muted py-4 text-center">Carregando sugestões...</p>
       ) : pessoas.length === 0 ? (
-        <p className="text-xs text-muted py-4 text-center">Nenhuma sugestão por enquanto.</p>
+        <p className={`text-xs py-4 text-center ${erro ? "text-danger" : "text-muted"}`}>
+          {erro || "Nenhuma sugestão por enquanto."}
+        </p>
       ) : (
         <ul className="space-y-3">
           {pessoas.map((pessoa) => (

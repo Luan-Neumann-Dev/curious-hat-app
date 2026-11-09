@@ -6,6 +6,7 @@ import { ConfirmModal } from "../components/ConfirmModal";
 import { GossipCard } from "../components/GossipCard";
 import { HatButton } from "../components/HatButton";
 import { IdentityToggle } from "../components/IdentityToggle";
+import { useAnuncio } from "../hooks/useAnuncio";
 import { mensagemDeErro } from "../lib/errors";
 import {
   alternarFogo,
@@ -60,6 +61,8 @@ export function GossipDetail() {
     }
     if (id) carregarDetalhe(id);
   }, [id]);
+
+  useAnuncio(loading ? "Abrindo segredo..." : "");
 
   if (loading) {
     return <p className="p-8 text-center text-fg-soft">Abrindo segredo...</p>;
@@ -194,10 +197,12 @@ export function GossipDetail() {
             placeholder="Sabe de mais alguma coisa? Comente aqui..."
             value={respostaTexto}
             onChange={(e) => setRespostaTexto(e.target.value)}
+            aria-invalid={erroResposta ? true : undefined}
+            aria-describedby={erroResposta ? "erro-resposta" : undefined}
             className="w-full bg-app border border-fg p-3 rounded-lg text-fg text-sm"
           />
           {erroResposta && (
-            <p role="alert" className="text-danger text-xs font-bold">{erroResposta}</p>
+            <p id="erro-resposta" role="alert" className="text-danger text-xs font-bold">{erroResposta}</p>
           )}
           <div className="flex flex-wrap items-center justify-between gap-3 pl-2">
             <IdentityToggle

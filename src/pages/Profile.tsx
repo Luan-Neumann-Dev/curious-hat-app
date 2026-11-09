@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { ProfileForm } from "../components/profile/ProfileForm";
 import { ProfileView } from "../components/profile/ProfileView";
+import { useAnuncio } from "../hooks/useAnuncio";
 import { useProfileData } from "../hooks/useProfileData";
 import { getCurrentProfile } from "../services/session";
 import type { UserProfile } from "../types";
@@ -21,10 +22,17 @@ export function Profile({ onProfileSaved, onLogout }: ProfileProps) {
     idUrl !== meuPerfil?.userId &&
     decodeURIComponent(idUrl ?? "").toLowerCase() !== meuPerfil?.accountName?.toLowerCase();
 
-  const { posts, setPosts, perfilVisitado, loading } = useProfileData(
+  const { posts, setPosts, perfilVisitado, loading, erro } = useProfileData(
     idUrl,
     visitandoOutroUsuario,
     meuPerfil
+  );
+  useAnuncio(loading ? "Carregando perfil..." : "");
+
+  const alertaDeErro = erro && (
+    <div role="alert" className="m-4 p-3 border border-danger bg-danger-soft/70 text-fg text-sm rounded-xl">
+      {erro}
+    </div>
   );
 
   if ((editando || !meuPerfil) && !visitandoOutroUsuario) {
@@ -45,22 +53,27 @@ export function Profile({ onProfileSaved, onLogout }: ProfileProps) {
 
   if (!dadosExibidos) {
     return (
-      <p className="p-8 text-center text-muted">
-        {loading ? "Carregando perfil..." : "Perfil não encontrado."}
-      </p>
+      alertaDeErro || (
+        <p className="p-8 text-center text-muted">
+          {loading ? "Carregando perfil..." : "Perfil não encontrado."}
+        </p>
+      )
     );
   }
 
   return (
-    <ProfileView
-      key={dadosExibidos.userId}
-      dados={dadosExibidos}
-      visitandoOutroUsuario={visitandoOutroUsuario}
-      posts={posts}
-      setPosts={setPosts}
-      loading={loading}
-      onEditar={() => setEditando(true)}
-      onLogout={onLogout}
-    />
+    <>
+      {alertaDeErro}
+      <ProfileView
+        key={dadosExibidos.userId}
+        dados={dadosExibidos}
+        visitandoOutroUsuario={visitandoOutroUsuario}
+        posts={posts}
+        setPosts={setPosts}
+        loading={loading}
+        onEditar={() => setEditando(true)}
+        onLogout={onLogout}
+      />
+    </>
   );
 }

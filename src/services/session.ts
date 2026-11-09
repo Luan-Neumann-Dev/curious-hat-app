@@ -108,17 +108,15 @@ async function carregarPerfil(usuario: User): Promise<UserProfile> {
   return perfilAtual;
 }
 
-/** Restaura a sessão salva pelo Supabase ao abrir o app. */
+/**
+ * Restaura a sessão salva pelo Supabase ao abrir o app.
+ * Falha se o servidor não responder, para não parecer que a pessoa saiu da conta.
+ */
 export async function carregarSessao(): Promise<UserProfile | null> {
   removerContasAntigas();
   const { data } = await supabase.auth.getSession();
   if (!data.session) return null;
-
-  try {
-    return await carregarPerfil(data.session.user);
-  } catch {
-    return null;
-  }
+  return carregarPerfil(data.session.user);
 }
 
 export async function entrar(email: string, senha: string): Promise<UserProfile> {
@@ -268,6 +266,6 @@ export async function buscarPerfilPublico(idOuNome: string): Promise<PublicProfi
     .limit(1)
     .maybeSingle<LinhaPerfil>();
 
-  if (error || !data) return null;
-  return paraPerfilPublico(data);
+  if (error) throw new Error("Não foi possível carregar este perfil.");
+  return data ? paraPerfilPublico(data) : null;
 }

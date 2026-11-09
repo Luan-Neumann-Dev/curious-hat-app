@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import { RefreshCw, Send } from "lucide-react";
+import { Abas, PainelDaAba } from "../components/Abas";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { GossipCard } from "../components/GossipCard";
 import { HatButton } from "../components/HatButton";
 import { IdentityToggle } from "../components/IdentityToggle";
+import { useAnuncio } from "../hooks/useAnuncio";
 import { useCommunities } from "../hooks/useCommunities";
 import { mensagemDeErro } from "../lib/errors";
+import { comPlural } from "../lib/plural";
 import { alternarFogo, criarHat, excluirHat, listarHats } from "../services/hats";
 import { getCurrentProfile } from "../services/session";
 import { EVENTO_SEGUIDORES } from "../services/social";
@@ -138,6 +141,12 @@ export function Feed() {
   // Se a pessoa saiu da comunidade escolhida, volta para "sem comunidade"
   const comunidadeValida = minhasIds.includes(comunidadeEscolhida) ? comunidadeEscolhida : "";
 
+  let status = comPlural(posts.length, "hat", "hats");
+  if (loading) status = "Carregando novidades...";
+  else if (error) status = "";
+  else if (posts.length === 0) status = abaAtual?.vazio ?? "";
+  useAnuncio(status);
+
   return (
     <div>
       <div className="border-b border-fg/40 p-4 flex items-center justify-between bg-app sticky top-0 z-10">
@@ -175,12 +184,14 @@ export function Feed() {
                   setTextoNovidade(e.target.value);
                   if (erroPostRapido) setErroPostRapido("");
                 }}
+                aria-invalid={erroPostRapido ? true : undefined}
+                aria-describedby={erroPostRapido ? "erro-novidades" : undefined}
                 className="w-full bg-app border border-fg/30 focus:border-accent p-3 rounded-xl text-fg placeholder-muted resize-none text-base"
               />
             </div>
           </div>
           {erroPostRapido && (
-            <p role="alert" className="text-danger text-xs font-bold mt-2">
+            <p id="erro-novidades" role="alert" className="text-danger text-xs font-bold mt-2">
               ⚠️ {erroPostRapido}
             </p>
           )}
@@ -220,45 +231,29 @@ export function Feed() {
           </div>
         </form>
       </div>
-      <div role="tablist" aria-label="Filtrar hats" className="grid grid-cols-3 border-b border-fg/30 text-sm font-bold text-center">
-        {ABAS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            role="tab"
-            aria-selected={aba === item.id}
-            onClick={() => trocarAba(item.id)}
-            className={`py-3.5 px-1 hover:bg-raised/60 transition cursor-pointer relative ${
-              aba === item.id ? "text-fg" : "text-muted"
-            }`}
-          >
-            <span>{item.rotulo}</span>
-            {aba === item.id && (
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-accent rounded-full" />
-            )}
-          </button>
-        ))}
-      </div>
-      {error && (
-        <div role="alert" className="m-4 p-4 border border-danger bg-danger-soft/70 text-fg rounded-xl">
-          {error}
-        </div>
-      )}
-      {loading ? (
-        <div className="p-12 text-center text-muted">Carregando novidades...</div>
-      ) : posts.length === 0 ? (
-        <div className="p-12 text-center text-muted">{abaAtual?.vazio}</div>
-      ) : (
-        posts.map((post) => (
-          <GossipCard
-            key={post.id}
-            post={post}
-            onLike={handleDarFogo}
-            onDeleteRequest={setPostParaDeletar}
-            onExpire={handleExpirar}
-          />
-        ))
-      )}
+      <Abas base="feed" rotulo="Filtrar hats" abas={ABAS} ativa={aba} onChange={trocarAba} />
+      <PainelDaAba base="feed" ativa={aba}>
+        {error && (
+          <div role="alert" className="m-4 p-4 border border-danger bg-danger-soft/70 text-fg rounded-xl">
+            {error}
+          </div>
+        )}
+        {loading ? (
+          <div className="p-12 text-center text-muted">Carregando novidades...</div>
+        ) : posts.length === 0 ? (
+          !error && <div className="p-12 text-center text-muted">{abaAtual?.vazio}</div>
+        ) : (
+          posts.map((post) => (
+            <GossipCard
+              key={post.id}
+              post={post}
+              onLike={handleDarFogo}
+              onDeleteRequest={setPostParaDeletar}
+              onExpire={handleExpirar}
+            />
+          ))
+        )}
+      </PainelDaAba>
       <ConfirmModal
         post={postParaDeletar}
         onCancel={() => setPostParaDeletar(null)}

@@ -33,7 +33,11 @@ export function JoinButton({ comunidadeId, nome, membro }: JoinButtonProps) {
       onClick={alternar}
       disabled={salvando}
       aria-pressed={membro}
-      aria-label={`${membro ? "Sair de" : "Entrar em"} ${nome}`}
+      aria-label={
+        falhou
+          ? `Tentar de novo: ${membro ? "sair de" : "entrar em"} ${nome}`
+          : `${membro ? "Sair de" : "Entrar em"} ${nome}`
+      }
       className={`px-3 py-1 rounded-full text-xs font-extrabold transition cursor-pointer shrink-0 disabled:opacity-60 disabled:cursor-wait ${
         membro
           ? "bg-app text-fg border border-fg/60 hover:border-danger hover:text-danger"

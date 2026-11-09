@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Send, Users } from "lucide-react";
+import { useAnuncio } from "../hooks/useAnuncio";
 import { avatarPorSemente } from "../lib/avatar";
 import { mensagemDeErro } from "../lib/errors";
 import {
@@ -57,6 +58,7 @@ export function Chat() {
   const conversaAberta = useRef(id);
 
   const ativa = conversas.find((conversa) => conversa.id === id) ?? null;
+  useAnuncio(loading ? "Carregando conversas..." : "");
 
   useEffect(() => {
     let montado = true;
@@ -155,7 +157,7 @@ export function Chat() {
       className={`md:w-72 md:shrink-0 md:border-r border-fg/30 min-w-0 md:overflow-y-auto ${id ? "hidden md:block" : "block"}`}
     >
       {conversas.length === 0 ? (
-        <div className="p-6 text-center text-sm text-muted space-y-2">
+        !erro && <div className="p-6 text-center text-sm text-muted space-y-2">
           <p>Nenhuma conversa ainda.</p>
           <p>
             Abra o perfil de alguém para conversar ou entre em uma{" "}
@@ -214,9 +216,11 @@ export function Chat() {
             className={`flex-1 min-w-0 flex-col ${id ? "flex" : "hidden md:flex"}`}
           >
             {!ativa ? (
-              <p className="m-auto p-8 text-center text-sm text-muted">
-                {id ? "Esta conversa não está disponível." : "Escolha uma conversa para começar."}
-              </p>
+              !erro && (
+                <p className="m-auto p-8 text-center text-sm text-muted">
+                  {id ? "Esta conversa não está disponível." : "Escolha uma conversa para começar."}
+                </p>
+              )
             ) : (
               <>
                 <div className="flex items-center gap-3 p-3 border-b border-fg/30 shrink-0 min-w-0">

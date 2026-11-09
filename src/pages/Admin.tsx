@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Ban, Search as SearchIcon, ShieldCheck, Trash2 } from "lucide-react";
+import { Abas, PainelDaAba } from "../components/Abas";
+import { useAnuncio } from "../hooks/useAnuncio";
 import { mensagemDeErro } from "../lib/errors";
 import { comPlural } from "../lib/plural";
 import { carregarEstatisticas, definirBloqueio, listarUsuarios } from "../services/admin";
@@ -183,6 +185,12 @@ export function Admin() {
   const abaAtual = ABAS.find((item) => item.id === aba);
   const estiloDaLinha = "flex flex-wrap items-start justify-between gap-3 p-4 border-b border-fg/20";
 
+  const totalDaAba = { hats: hats.length, respostas: respostas.length, usuarios: usuarios.length }[aba];
+  let status = comPlural(totalDaAba, "resultado", "resultados");
+  if (loading) status = "Carregando...";
+  else if (erro) status = "";
+  useAnuncio(status);
+
   return (
     <div>
       <div className="border-b border-fg/40 p-4 bg-app flex items-center gap-2">
@@ -199,26 +207,9 @@ export function Admin() {
         ))}
       </dl>
 
-      <div role="tablist" aria-label="Área do painel" className="grid grid-cols-3 border-b border-fg/30 text-sm font-bold text-center">
-        {ABAS.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            role="tab"
-            aria-selected={aba === item.id}
-            onClick={() => trocarAba(item.id)}
-            className={`py-3.5 px-1 hover:bg-raised/60 transition cursor-pointer relative ${
-              aba === item.id ? "text-fg" : "text-muted"
-            }`}
-          >
-            <span>{item.rotulo}</span>
-            {aba === item.id && (
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-16 h-1 bg-accent rounded-full" />
-            )}
-          </button>
-        ))}
-      </div>
+      <Abas base="admin" rotulo="Área do painel" abas={ABAS} ativa={aba} onChange={trocarAba} />
 
+      <PainelDaAba base="admin" ativa={aba}>
       <div className="p-4 border-b border-fg/30 relative">
         <label htmlFor="busca-admin" className="sr-only">{abaAtual?.busca}</label>
         <SearchIcon size={18} className="absolute left-7.5 top-7 text-accent" aria-hidden="true" />
@@ -242,7 +233,7 @@ export function Admin() {
         <p className="p-10 text-center text-muted">Carregando...</p>
       ) : aba === "hats" ? (
         hats.length === 0 ? (
-          <p className="p-10 text-center text-muted">Nenhum hat encontrado.</p>
+          !erro && <p className="p-10 text-center text-muted">Nenhum hat encontrado.</p>
         ) : (
           <ul>
             {hats.map((hat) => (
@@ -267,7 +258,7 @@ export function Admin() {
         )
       ) : aba === "respostas" ? (
         respostas.length === 0 ? (
-          <p className="p-10 text-center text-muted">Nenhuma resposta encontrada.</p>
+          !erro && <p className="p-10 text-center text-muted">Nenhuma resposta encontrada.</p>
         ) : (
           <ul>
             {respostas.map((resposta) => (
@@ -287,7 +278,7 @@ export function Admin() {
           </ul>
         )
       ) : usuarios.length === 0 ? (
-        <p className="p-10 text-center text-muted">Nenhum usuário encontrado.</p>
+        !erro && <p className="p-10 text-center text-muted">Nenhum usuário encontrado.</p>
       ) : (
         <ul>
           {usuarios.map((usuario) => (
@@ -327,6 +318,7 @@ export function Admin() {
           ))}
         </ul>
       )}
+      </PainelDaAba>
     </div>
   );
 }
